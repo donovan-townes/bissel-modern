@@ -1,0 +1,5 @@
+{
+  "toggled.on": "{user} is now **Available to DM**.",
+  "toggled.off": "{user} is **no longer** available to DM.",
+  "list.title": "__Available to DM__"
+}

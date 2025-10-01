@@ -10,9 +10,13 @@
   "scripts": {
     "dev": "tsx watch src/core/bot.ts",
     "build": "tsc",
+    "strings:smoke": "tsx src/scripts/strings-smoke.ts",
+    "deploy:dev": "tsx src/scripts/register-commands.ts",
+    "deploy:list":"tsx src/scripts/register-commands.ts --list",
+    "deploy:clear:global":"tsx src/scripts/register-commands.ts --clear-global",
+    "deploy:global": "cross-env DEV_GUILD_ID= tsx src/scripts/register-commands.ts",
     "prestart": "npm run build",
     "start": "node dist/core/bot.js",
-    "register": "tsx scripts/register-commands.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

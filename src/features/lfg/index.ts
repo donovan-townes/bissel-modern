@@ -1,6 +1,6 @@
 // features/lfg/index.ts
-import { register } from "../../core/feature-registry";
-import type { GuildConfig } from "../../config/app.config";
+import { register } from "../../core/feature-registry.js";
+import type { GuildConfig } from "../../config/app.config.js";
 
 register("lfg", (g: GuildConfig) => {
   const cfg = g.features.lfg;
@@ -14,6 +14,7 @@ register("lfg", (g: GuildConfig) => {
         throw new Error(`[config:${guild.name}] LFG requires 'member' role mapping`);
     },
     init(client, guild) {
+        if (client) console.log("LFG feature initialized with client", client.user?.tag);
         console.log("Initiating LFG feature for guild", guild.name);
       // hook any startup tasks, cache channel/role IDs if you want
     },

@@ -1,7 +1,7 @@
 // src/core/feature-registry.ts
 // This file manages the registration and retrieval of features within the bot.
 // It ensures that features are properly initialized and accessible throughout the application.
-import type { GuildConfig } from "../config/app.config";
+import type { GuildConfig } from "../config/app.config.js";
 import type {Client, Interaction, Message } from "discord.js";
 
 export type Feature = {
@@ -23,7 +23,7 @@ export function register(key: string, factory: FeatureFactory) {
 
 export function loadFeatures(g: GuildConfig) {
     return Object.entries(registry)
-    .map(([key, make]) => make(g))
+    .map(([, make]) => make(g))
     .filter((f): f is Feature => !!f);
 }
 

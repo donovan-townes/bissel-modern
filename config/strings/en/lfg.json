@@ -1,0 +1,21 @@
+{
+    "lfg": {
+        "error.generic": "I sharted all over your file and can't add you to LFG.",
+        "empty.pbp": "Sorry, kid. Folks like their live games.",
+        "empty.low": "Weird. Need more meat for the grinder. Invite some friends!",
+        "empty.mid": "Too busy FTBing to LFG. Tell 'em to get a life and play D&D with you!",
+        "empty.high": "Apparently they've all been annihilated by spheres of varying sizes. Shame.",
+        "empty.epic": "Sorry, bub. Looks like they're already being space pirates on the Astral Plane.",
+        "added": "{user} is LFG for a {tierLabel} game.",
+        "removed.all": "{user} is no longer LFG.",
+        "removed.tier": "{user} is no longer LFG for a {tierLabel} game.",
+        "list.title": "__Looking For Group__",
+        "list.pbp_title": "**PBP PLIX**",
+        "list.low_title": "**Low Tier** (Levels 2-4)",
+        "list.mid_title": "**Mid Tier** (Levels 5-10)",
+        "list.high_title": "**High Tier** (Levels 11-16)",
+        "list.epic_title": "**Epic Tier** (Levels 17+)",
+        "wait.days": ": {days} DAY{plural} LFG"
+        }
+
+}

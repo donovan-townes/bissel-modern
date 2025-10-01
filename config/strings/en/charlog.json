@@ -1,0 +1,8 @@
+{
+  "charlog": {
+      "initiate": {
+        "success": "{mention} has been initiated as a {brand.guildMember}.",
+        "denied": "Only staff can initiate new members."
+    }
+    }
+}
