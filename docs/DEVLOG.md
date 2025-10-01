@@ -21,8 +21,10 @@ This is not a detailed changelog; it’s a *narrative of progress* for future de
 
 - [x] Added `config.json` for role names, prefixes, guild IDs, level curve.
 - [x] Added dotenv for secrets.
+- [x] Verified bot boots with interaction + message gateway intents.
+- [x] Verified bot connects to Discord.
 
-### MO-01.3 — Personality Lift
+### MO-01.3 — Personality Lift 
 
 - [ ] Ported personality strings from legacy.
 - [ ] Exposed as typed module.
@@ -35,9 +37,12 @@ This is not a detailed changelog; it’s a *narrative of progress* for future de
 > Typescript scaffolding + dev/prod scripts
 > docs started
 > bot boots with interaction + message gateway intents
-
+> updated config setup, using app.config over config.json
+> dotenv for secrets
+> verified bot connects to Discord
+> integrated strings for channel names, role names, prefixes, level curve
 ---
 
-✅ WPT-01 completed.
+✅ WPT01-MO-01 completed.
 Repo scaffolded with Node + ESLint/Prettier.
 Centralized config. Personality strings migrated.
