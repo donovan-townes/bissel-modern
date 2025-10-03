@@ -1,6 +1,6 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder, PermissionFlagsBits } from 'discord.js';
-import { getDb } from '../db/index.js'; // however you expose it
-import pkg from '../../package.json' assert { type: 'json' };
+import { ChatInputCommandInteraction, SlashCommandBuilder, PermissionFlagsBits, MessageFlags } from 'discord.js';
+import { getDb } from '../db/index.js'; 
+import pkg from '../../package.json' with { type: 'json' };
 
 export const data = new SlashCommandBuilder()
   .setName('health')
@@ -17,17 +17,18 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
   let dbStatus = 'skipped';
   try {
-    await db.get('SELECT 1'); // or a tiny “SELECT count(*) FROM charlog” if exists
+    await db.get('SELECT 1'); 
     dbStatus = 'ok';
-  } catch (e) {
+  } catch (err) {
     dbStatus = 'error';
+    console.error('❌ DB health check failed:', err);
   }
 
-  await interaction.reply({
-    ephemeral: true, // avoid channel noise
+    await interaction.reply({
+    flags: MessageFlags.Ephemeral,
     content:
       [
-        `**BISSELL — /health**`,
+        `** — /health**`,
         `• Uptime: ${ms(uptimeMs)}`,
         `• WS Ping: ${ping} ms`,
         `• DB: ${dbStatus}`,

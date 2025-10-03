@@ -24,19 +24,16 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   const gp = (row.cp / 100).toFixed(2);
   const tp = (row.tp / 2).toFixed(1);
 
-  await interaction.reply({
-    content: `**Character — ${row.name}**\nLevel: ${row.level}\nXP: ${row.xp}\nTP: ${tp}\nGP: ${gp}`,
-  });
-
-  //   await interaction.reply({
-  //     embeds: [{
-  //       title: `Character — ${row.name}`,
-  //       fields: [
-  //         { name: 'Level', value: String(row.level), inline: true },
-  //         { name: 'XP', value: String(row.xp), inline: true },
-  //         { name: 'TP', value: tp, inline: true },
-  //         { name: 'GP', value: gp, inline: true },
-  //       ],
-  //     }],
-  //   });
+ 
+    await interaction.reply({
+      embeds: [{
+        title: `Character — ${row.name}`,
+        fields: [
+          { name: 'Level', value: String(row.level), inline: true },
+          { name: 'XP', value: String(row.xp), inline: true },
+          { name: 'TP', value: tp, inline: true },
+          { name: 'GP', value: gp, inline: true },
+        ],
+      }],
+    });
 }

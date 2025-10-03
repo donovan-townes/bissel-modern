@@ -7,6 +7,7 @@ export type Sqlite = Database<sqlite3.Database, sqlite3.Statement>;
 let _db: Sqlite | null = null;
 
 const DEFAULT_DB = process.env.DB_FILE || path.resolve(process.cwd(), 'data/charlog.sqlite');
+const FUND_ID = process.env.GUILD_FUND_ID || 'sys:fund:remnant';
 
 export async function initDb(dbFile = DEFAULT_DB) {
   fs.mkdirSync(path.dirname(dbFile), { recursive: true });
@@ -29,10 +30,21 @@ export async function initDb(dbFile = DEFAULT_DB) {
     );
   `);
 
+  
+  // create the fund row if missing
+  await db.run(
+    `INSERT INTO charlog (userId, name, level, xp, cp, tp)
+     VALUES (?, 'Adventurers Guild Fund', 20, 305000, 500000, 0)
+     ON CONFLICT(userId) DO NOTHING`,
+    FUND_ID
+  );
+
+
   _db = db;
     console.log(`📂 Database initialized: ${dbFile}`);
   return db;
 }
+
 
 export function getDb(): Sqlite {
   if (!_db) throw new Error('DB not initialized — call initDb() before using getDb()');
