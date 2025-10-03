@@ -22,13 +22,14 @@ import { loadFeatures } from "./feature-registry.js";
 
 // import features (admin, lfg, charlog, economy, etc)
 import "../features/lfg/index.js";
+import { initDb } from '../db/index.js';
 
 
 
 // commmand-registry
 type CommandModule = {
   data?: SlashCommandBuilder;
-  execute?: (i: ChatInputCommandInteraction) => Promise<any>;
+  execute?: (i: ChatInputCommandInteraction) => Promise<void>;
 }
 
 const commands = new Map<string, CommandModule>();
@@ -79,11 +80,7 @@ if (!guildCfg) {
   );
 }
 
-
-
-
 const features = loadFeatures(guildCfg);
-
 features.forEach(f => f.validate?.(guildCfg));
 
 client.on(Events.MessageCreate, (msg) => {
@@ -123,6 +120,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
 client.once(Events.ClientReady, async () => {
   await loadCommands();
+  await initDb();
   features.forEach(f => f.init?.(client, guildCfg));
   console.log(`Ready as ${client.user?.tag}. Loaded features: ${features.map(f=>f.key).join(", ")}`);
 });

@@ -53,7 +53,7 @@ async function main() {
     const rest = new REST({ version: "10"}).setToken(TOKEN)
 
     async function list() {
-        const global = await rest.get(Routes.applicationCommands(APP_ID)) as any[];
+        const global = await rest.get(Routes.applicationCommands(APP_ID!)) as any[];
         console.log("Global commands: ", global.map(c => c.name))
     }
 

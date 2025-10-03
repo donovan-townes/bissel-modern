@@ -1,0 +1,50 @@
+import { open } from 'sqlite';
+import sqlite3 from 'sqlite3';
+import fs from 'fs';
+import path from 'path';
+
+const DB_FILE = process.env.DB_FILE || './data/charlog.sqlite';
+const MY_ID = process.env.MY_DISCORD_ID || '246030816692404234';
+
+async function main() {
+  fs.mkdirSync(path.dirname(DB_FILE), { recursive: true });
+  const db = await open({ filename: DB_FILE, driver: sqlite3.Database });
+
+  await db.exec(`
+    PRAGMA journal_mode = WAL;
+    PRAGMA synchronous = NORMAL;
+    PRAGMA foreign_keys = ON;
+    PRAGMA busy_timeout = 5000;
+
+    CREATE TABLE IF NOT EXISTS charlog (
+      userId TEXT PRIMARY KEY,
+      name   TEXT NOT NULL,
+      level  INTEGER NOT NULL,
+      xp     INTEGER NOT NULL,
+      cp     INTEGER NOT NULL,  -- copper (GP*100)
+      tp     INTEGER NOT NULL   -- halves of TP (TP*2)
+    );
+  `);
+
+  // minimal seed: you + (optional) guild fund
+  await db.run(`
+    INSERT INTO charlog (userId, name, level, xp, cp, tp)
+    VALUES (?, ?, ?, ?, ?, ?)
+    ON CONFLICT(userId) DO UPDATE SET
+      name=excluded.name, level=excluded.level, xp=excluded.xp,
+      cp=excluded.cp, tp=excluded.tp
+  `, [MY_ID, 'Donovan Test', 3, 900, 12500, 4]); // 125.00 GP, 2.0 TP
+
+  await db.run(`
+    INSERT INTO charlog (userId, name, level, xp, cp, tp)
+    VALUES ('429691339270258688', 'Adventurers Guild (Fund)', 20, 305000, 500000, 0)
+    ON CONFLICT(userId) DO UPDATE SET cp=excluded.cp
+  `);
+
+  const row = await db.get(`SELECT name, level, xp, cp, tp FROM charlog WHERE userId=?`, MY_ID);
+  console.log('Seeded:', row);
+  await db.close();
+  console.log('Seed complete →', DB_FILE);
+}
+
+main().catch(err => { console.error(err); process.exit(1); });
