@@ -12,6 +12,7 @@
     "build": "tsc",
     "strings:smoke": "tsx src/scripts/strings-smoke.ts",
     "deploy:dev": "tsx src/scripts/register-commands.ts",
+    "deploy:prod": "tsx src/scripts/register-commands.ts --prod",
     "deploy:list": "tsx src/scripts/register-commands.ts --list",
     "deploy:clear:global": "tsx src/scripts/register-commands.ts --clear-global",
     "deploy:global": "cross-env DEV_GUILD_ID= tsx src/scripts/register-commands.ts",
@@ -32,7 +33,8 @@
     "dotenv": "^17.2.2",
     "prettier": "^3.6.2",
     "sqlite": "^5.1.1",
-    "sqlite3": "^5.1.7"
+    "sqlite3": "^5.1.7",
+    "zod": "^4.1.11"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",

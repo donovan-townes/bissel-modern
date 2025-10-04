@@ -1,7 +1,4 @@
 // core/bot.ts
-import * as dotenv from 'dotenv';
-dotenv.config();
-
 import { 
   Client, 
   GatewayIntentBits, 
@@ -16,9 +13,8 @@ import path from 'node:path'
 import {  pathToFileURL } from "node:url"
 
 
-import { DEFAULT_CONFIG } from "../config/app.config.js";
+import { CONFIG } from '../config/resolved.js';
 import { loadFeatures } from "./feature-registry.js";
-
 
 // import features (admin, lfg, charlog, economy, etc)
 import "../features/lfg/index.js";
@@ -71,8 +67,8 @@ const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMembers],
 });
 
-const guildId = DEFAULT_CONFIG.guild!.id;
-const guildCfg = DEFAULT_CONFIG.guild!.config;
+const guildId = CONFIG.guild!.id;
+const guildCfg = CONFIG.guild!.config;
 
 if (!guildCfg) {
   throw new Error(
@@ -125,4 +121,31 @@ client.once(Events.ClientReady, async () => {
   console.log(`Ready as ${client.user?.tag}. Loaded features: ${features.map(f=>f.key).join(", ")}`);
 });
 
-client.login(process.env.DISCORD_TOKEN);
+client.login(CONFIG.secrets.token).catch(err => {
+  console.error("❌ Failed to login to Discord. Please check your DISCORD_TOKEN.");
+  process.exit(1);
+});
+
+// graceful shutdown
+process.on('SIGINT', async () => {
+  console.log('Received SIGINT, shutting down...');
+  await client.destroy();
+  process.exit(0);
+});
+
+// on unhandled rejections
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+// on uncaught exceptions
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception thrown:', err);
+  process.exit(1);
+});
+
+// on warnings
+process.on('warning', (warning) => {
+  console.warn('Warning:', warning);
+});
+

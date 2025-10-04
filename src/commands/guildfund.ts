@@ -2,7 +2,9 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction, PermissionFlagsBits, MessageFlags } from 'discord.js';
 import { getDb } from '../db/index.js';
 
-const FUND_ID = process.env.GUILD_FUND_ID || 'sys:fund:remnant';
+import { CONFIG } from '../config/resolved.js';
+
+const FUND_ID = CONFIG.system.fundId;
 
 export const data = new SlashCommandBuilder()
   .setName('guildfund')

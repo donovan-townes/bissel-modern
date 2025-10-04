@@ -3,7 +3,7 @@ import sqlite3 from 'sqlite3';
 import fs from 'fs';
 import path from 'path';
 
-const DB_FILE = process.env.DB_FILE || './data/charlog.sqlite';
+const DB_FILE = process.env.DB_FILE || './data/remnant.sqlite';
 const MY_ID = process.env.MY_DISCORD_ID || '246030816692404234';
 
 async function main() {
@@ -34,6 +34,7 @@ async function main() {
       name=excluded.name, level=excluded.level, xp=excluded.xp,
       cp=excluded.cp, tp=excluded.tp
   `, [MY_ID, 'Donovan Test', 3, 900, 12500, 4]); // 125.00 GP, 2.0 TP
+
 
   const row = await db.get(`SELECT name, level, xp, cp, tp FROM charlog WHERE userId=?`, MY_ID);
   console.log('Seeded:', row);

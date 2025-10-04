@@ -1,19 +1,31 @@
-import "dotenv/config";
 import { REST, Routes, SlashCommandBuilder } from 'discord.js';
 import path from 'node:path'
 import fs from 'node:fs/promises'
 import { pathToFileURL } from "node:url"
 
+import { CONFIG } from "../config/resolved.js";
+
 type CommandModule = {
     data?: SlashCommandBuilder;
 };
 
-const TOKEN = process.env.DISCORD_TOKEN;
-const APP_ID = process.env.APP_ID;
-const DEV_GUILD_ID = process.env.DEV_GUILD_ID;
+const TOKEN = CONFIG.secrets.token;
+const APP_ID = CONFIG.system.appId;
+const DEV_GUILD_ID = CONFIG.system.devGuildId;
+
+// if prod, use GUILD_ID instead
+const GUILD_ID = CONFIG.system.guildId;
 
 const CLEAR_GLOBAL = process.argv.includes("--clear-global")
 const LIST = process.argv.includes("--list")
+const PROD = process.argv.includes("--prod") || process.argv.includes("--production")
+
+// guard: refuse to run if prod but no GUILD_ID
+if (PROD && !GUILD_ID) {
+    throw new Error("Refusing to run with --prod/--production without GUILD_ID set in env.")
+}
+
+
 
 async function findCommandFiles(dir: string): Promise<string[]> {
     const out: string[] = [];
@@ -57,11 +69,22 @@ async function main() {
         console.log("Global commands: ", global.map(c => c.name))
     }
 
-    if (DEV_GUILD_ID) {
-        console.log(`Upserting ${body.length} commands to guild ${DEV_GUILD_ID}…`);
+    if (PROD) {
+        if (!GUILD_ID) {
+            throw new Error("GUILD_ID not set. Refusing to deploy globally. Set GUILD_ID or pass --clear-global/--list.");
+        }
+        console.log(`Upserting ${body.length} commands to guild ${GUILD_ID}…`);
+        await rest.put(Routes.applicationGuildCommands(APP_ID, GUILD_ID), { body });
+        console.log("✅ Guild commands updated (instant).");
+        return
+    } else if (DEV_GUILD_ID) {
+    
+        console.log(`Upserting ${body.length} commands to dev guild ${DEV_GUILD_ID}…`);
         await rest.put(Routes.applicationGuildCommands(APP_ID, DEV_GUILD_ID), { body });
         console.log("✅ Guild commands updated (instant).");
-    } else {
+    } 
+    
+    else {
         // HARD GUARD: refuse accidental global deploys
         throw new Error("DEV_GUILD_ID not set. Refusing to deploy globally. Set DEV_GUILD_ID or pass --clear-global/--list.");
     }

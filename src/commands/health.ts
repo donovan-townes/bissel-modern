@@ -5,7 +5,7 @@ import pkg from '../../package.json' with { type: 'json' };
 export const data = new SlashCommandBuilder()
   .setName('health')
   .setDescription('Show bot health/uptime and basic checks')
-  .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild); // optional: restrict
+  .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles); // optional: restrict
 
 export async function execute(interaction: ChatInputCommandInteraction) {
   const startedAt = interaction.client.readyTimestamp ?? Date.now();
