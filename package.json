@@ -19,6 +19,7 @@
     "prestart": "npm run build",
     "start": "node dist/core/bot.js",
     "db:init": "tsx src/scripts/init.db.ts",
+    "db:backup": "tsx src/scripts/backup.ts",
     "db:wipe": "tsx src/scripts/wipe.ts",
     "db:seed:me": "tsx src/scripts/seed.me.ts",
     "db:reseed:me": "npm run db:wipe && npm run db:seed:me",

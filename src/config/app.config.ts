@@ -84,7 +84,7 @@ export const DEFAULT_CONFIG: AppConfig = {
         config: {
             name: "Remnant",
             roles: {
-                member: {id: "1333300035596714014"}, // guild member
+                member: {id: "1333300035596714014"}, // crew
                 admin: {id: "371700885014970378"},
                 moderator: {id: "371997814407954434"},
                 dm: {id: "1333297187353788437"},

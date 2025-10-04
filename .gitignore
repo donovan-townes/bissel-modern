@@ -10,13 +10,12 @@ dist
 logs
 
 
-
 # SQLite runtime files
 data/**/*.sqlite
+data/**/*.sqlite3
 data/**/*.sqlite-shm
 data/**/*.sqlite-wal
 data/**/*.sqlite3
-data/**/*.db
-data/**/*.db-wal
-data/**/*.db-shm
+data/**/*.db*
 backups/**
+!backups/.gitkeep
