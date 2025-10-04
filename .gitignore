@@ -7,6 +7,9 @@ dist
 
 .DS_Store
 .vscode
+logs
+
+
 
 # SQLite runtime files
 data/**/*.sqlite
