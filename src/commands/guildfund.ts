@@ -31,10 +31,10 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     embeds: [{
       title: row.name ?? 'Adventurers Guild Fund',
       fields: [
-        { name: 'GP', value: gp, inline: true },
-        { name: 'TP', value: tp, inline: true },
+        { name: 'GP', value: "💰 " + gp, inline: true },
+        { name: 'GT', value: "🎫 " + tp, inline: true },
       ],
-      footer: { text: 'Stored as cp (x100) and half-TP (x2) internally' }
+      footer: { text: 'Stored as cp (x100) and half-GT (x2) internally' }
     }]
   });
 }

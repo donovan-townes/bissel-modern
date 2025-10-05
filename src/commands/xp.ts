@@ -15,7 +15,7 @@ import {
   proficiencyFor,
 } from "../domain/xp.js";
 import { CONFIG } from "../config/resolved.js";
-import { isDevBypass, hasAnyRole, isAdmin } from "../config/validaters.js";
+import { validateCommandPermissions } from "../config/validaters.js";
 import { getDb } from "../db/index.js";
 
 type PlayerRow = { userId: string; name: string; xp: number; level: number };
@@ -154,15 +154,8 @@ export async function execute(ix: ChatInputCommandInteraction) {
   const member = ix.member as GuildMember | null;
 
   // Role gates (show = everyone unless configured)
-    const canShow = PERMS.show.length === 0 || hasAnyRole(member, PERMS.show) || isAdmin(member) || isDevBypass(ix);
-    if (sub === "show") {
-    if (!canShow) return ix.reply({ ephemeral: true, content: "You don’t have permission to use this." });
-    } else {
-    const allowed = hasAnyRole(member, PERMS[sub as keyof typeof PERMS]) || isAdmin(member) || isDevBypass(ix);
-    if (!allowed) {
-        return ix.reply({ ephemeral: true, content: "You don’t have permission to use this." });
-    }
-    }
+  if (!validateCommandPermissions(ix, member, PERMS)) return;
+
 
   if (sub === "show") {
     const user = ix.options.getUser("user") ?? ix.user;

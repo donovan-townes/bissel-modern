@@ -55,9 +55,9 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         { name: 'Level', value: '3', inline: true },
         { name: 'XP',    value: '900', inline: true },
         { name: 'GP',    value: '80.00', inline: true },
-        { name: 'TP',    value: '0.0', inline: true },
+        { name: 'GT',    value: '0.0', inline: true },
       ],
-      footer: { text: 'Note: levels will later be calculated from XP thresholds (1–20).' },
+      footer: { text: 'guild.welcome-message.footer' },
     }],
   });
 }

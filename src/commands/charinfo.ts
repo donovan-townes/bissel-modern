@@ -32,10 +32,11 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         .setTitle(`Character — ${row.name}`)
         .setDescription("OOC Owner: " + user.toString())
         .addFields(
-          { name: 'Level', value: String(row.level), inline: true },
-          { name: 'XP', value: String(row.xp), inline: true },
-          { name: 'TP', value: tp, inline: true },
-          { name: 'GP', value: gp, inline: true },
+          { name: 'Level', value: "⭐ " + String(row.level), inline: true },
+          { name: 'Experience (XP)', value:"💪 " + String(row.xp), inline: true })
+          .addFields(
+            { name: 'Golden Tickets (GT)', value: "🎫 " + tp, inline: false },
+            { name: 'Gold Pieces (GP)', value: "💰 " + gp, inline: true },
         )
         .setFooter({ text: "Requested via " + caller.displayName, iconURL: caller.displayAvatarURL() })
     ] });
