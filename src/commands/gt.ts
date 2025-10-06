@@ -10,7 +10,6 @@ import { getDb } from "../db/index.js";
 import { validateCommandPermissions } from "../config/validaters.js";
 
 // Note that GT is actually TP (Training Points) in the database. Changed via guild decision.
-// GT is stored doubled (0.5 → 1). Display as gt/2.
 type PlayerRow = { userId: string; name: string; xp: number; level: number; cp: number; tp: number };
 
 async function getPlayerByUserId(userId: string): Promise<PlayerRow> {
@@ -45,25 +44,19 @@ async function upsertPlayerTP(userId: string, nextTPUnits: number, displayName?:
 
 const CFG = CONFIG.guild!.config;
 const ROLE = CFG.roles;
+
+
 const PERMS = {
-  add: [ROLE.dm.id, ROLE.moderator.id, ROLE.admin.id],
-  adjust: [ROLE.moderator.id, ROLE.admin.id],
-  set: [ROLE.admin.id],
-  show: [] as string[],
+  add: [ROLE.dm.id, ROLE.moderator.id, ROLE.admin.id].filter((id): id is string => id !== undefined),
+  adjust: [ROLE.moderator.id, ROLE.admin.id].filter((id): id is string => id !== undefined),
+  set: [ROLE.admin.id].filter((id): id is string => id !== undefined),
+  show: [] as string[], // empty => everyone
 };
 
 
-function toUnits(tp: number) {
-  // accept steps of 0.5
-  return Math.round(tp * 2);
-}
-function toDisplay(units: number) {
-  return (units / 2).toFixed(1).replace(/\.0$/, "");
-}
-
 export const data = new SlashCommandBuilder()
   .setName("gt")
-  .setDescription("Manage a user's Golden Tickets (GT). Stored as half-points.")
+  .setDescription("Manage a user's Golden Tickets (GT).")
   .addSubcommand(sc =>
     sc.setName("show")
       .setDescription("Show GT for a user")
@@ -71,16 +64,16 @@ export const data = new SlashCommandBuilder()
   )
   .addSubcommand(sc =>
     sc.setName("add")
-      .setDescription("Give GT to a user (supports 0.5 steps)")
+      .setDescription("Give GT to a user")
       .addUserOption(o => o.setName("user").setDescription("Target").setRequired(true))
-      .addNumberOption(o => o.setName("amount").setDescription("GT to add (e.g., 1 or 0.5)").setRequired(true).setMinValue(0.5))
+      .addNumberOption(o => o.setName("amount").setDescription("GT to add").setRequired(true).setMinValue(1))
       .addStringOption(o => o.setName("reason").setDescription("Why? (audit)").setMaxLength(200))
   )
   .addSubcommand(sc =>
     sc.setName("adjust")
-      .setDescription("Adjust GT by a signed decimal (0.5 steps)")
+      .setDescription("Adjust GT by a signed decimal")
       .addUserOption(o => o.setName("user").setDescription("Target").setRequired(true))
-      .addNumberOption(o => o.setName("amount").setDescription("Signed GT delta (e.g., -0.5)").setRequired(true))
+      .addNumberOption(o => o.setName("amount").setDescription("Signed GT delta (e.g., -1)").setRequired(true))
       .addStringOption(o => o.setName("reason").setDescription("Why? (audit)").setMaxLength(200))
   )
   .addSubcommand(sc =>
@@ -104,8 +97,8 @@ export async function execute(ix: ChatInputCommandInteraction) {
     const embed = new EmbedBuilder()
       .setAuthor({ name: `${row.name} — Golden Tickets` })
       .addFields(
-        { name: "GT", value: `**${toDisplay(row.tp)}**`, inline: true },
-        { name: "Stored", value: `${row.tp} (half-points)`, inline: true },
+        { name: "GT", value: `**${row.tp}**`, inline: true },
+        { name: "Stored", value: `${row.tp}`, inline: true },
       );
     return ix.reply({ ephemeral: true, embeds: [embed] });
   }
@@ -117,24 +110,24 @@ export async function execute(ix: ChatInputCommandInteraction) {
   if (sub === "add") {
     const amt = ix.options.getNumber("amount", true);
     if (amt <= 0) return ix.reply({ ephemeral: true, content: "Amount must be > 0." });
-    const deltaUnits = toUnits(amt);
+    const deltaUnits = amt;
     const next = Math.max(0, row.tp + deltaUnits);
     await upsertPlayerTP(user.id, next, row.name);
-    return ix.reply({ ephemeral: true, content: `OK. ${row.name}: **+${amt} GT** → ${toDisplay(next)} GT` });
+    return ix.reply({ ephemeral: true, content: `OK. ${row.name}: **+${amt} GT** → ${next} GT` });
   }
 
   if (sub === "adjust") {
     const amt = ix.options.getNumber("amount", true);
-    const deltaUnits = toUnits(amt);
+    const deltaUnits = amt;
     const next = Math.max(0, row.tp + deltaUnits);
     await upsertPlayerTP(user.id, next, row.name);
     const sign = deltaUnits >= 0 ? "+" : "−";
-    return ix.reply({ ephemeral: true, content: `OK. ${row.name}: **${sign}${Math.abs(amt)} GT** → ${toDisplay(next)} GT` });
+    return ix.reply({ ephemeral: true, content: `OK. ${row.name}: **${sign}${Math.abs(amt)} GT** → ${next} GT` });
   }
 
   if (sub === "set") {
     const amt = ix.options.getNumber("amount", true);
-    const next = toUnits(amt);
+    const next = amt;
     await upsertPlayerTP(user.id, next, row.name);
     return ix.reply({ ephemeral: true, content: `OK. ${row.name}: set to **${amt} GT**` });
   }

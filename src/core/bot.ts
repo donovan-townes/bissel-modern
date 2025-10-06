@@ -14,12 +14,9 @@ import {  pathToFileURL } from "node:url"
 
 
 import { CONFIG } from '../config/resolved.js';
-import { loadFeatures } from "./feature-registry.js";
-
-// import features (admin, lfg, charlog, economy, etc)
-import "../features/lfg/index.js";
 import { initDb } from '../db/index.js';
 
+import * as retire from '../commands/retire.js';
 
 
 // commmand-registry
@@ -76,13 +73,6 @@ if (!guildCfg) {
   );
 }
 
-const features = loadFeatures(guildCfg);
-features.forEach(f => f.validate?.(guildCfg));
-
-client.on(Events.MessageCreate, (msg) => {
-  for (const f of features) f.onMessage?.(msg);
-});
-
 client.on(Events.InteractionCreate, async (interaction) => {
   // slash command handler
   if (interaction.isChatInputCommand()) {
@@ -110,18 +100,32 @@ client.on(Events.InteractionCreate, async (interaction) => {
     return
   }
 
-  // other event interaction stuff
-  for (const f of features) f.onInteraction?.(interaction);
+  if (interaction.isModalSubmit()) {
+    // You can either check directly for retire modal IDs,
+    // or dynamically dispatch if you add more modals later.
+    if (interaction.customId.startsWith('retire-confirm-')) {
+      try {
+        await retire.handleModal(interaction);
+      } catch (err) {
+        console.error('[Retire Modal]', err);
+        const msg = "Something broke while processing the retirement.";
+        if (interaction.deferred || interaction.replied) {
+          await interaction.followUp({ content: msg, flags: MessageFlags.Ephemeral });
+        } else {
+          await interaction.reply({ content: msg, flags: MessageFlags.Ephemeral });
+        }
+      }
+    }
+  }
 });
 
 client.once(Events.ClientReady, async () => {
   await loadCommands();
   await initDb();
-  features.forEach(f => f.init?.(client, guildCfg));
-  console.log(`Ready as ${client.user?.tag}. Loaded features: ${features.map(f=>f.key).join(", ")}`);
+  console.log(`Ready as ${client.user?.tag}. Guild: ${guildId} (${guildCfg.name})`);
 });
 
-client.login(CONFIG.secrets.token).catch(err => {
+client.login(CONFIG.secrets.token).catch(() => {
   console.error("❌ Failed to login to Discord. Please check your DISCORD_TOKEN.");
   process.exit(1);
 });

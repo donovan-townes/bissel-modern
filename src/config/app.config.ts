@@ -98,7 +98,7 @@ export const DEFAULT_CONFIG: AppConfig = {
                 lfg: {
                     enabled: true,
                     channels: {
-                        board: "1406359181702856785", //groupUp channel
+                        board: "1406359181702856785",
                         pingForDM: "1406359212690243634"
                     },
                     roles: {

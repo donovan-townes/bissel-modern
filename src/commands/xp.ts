@@ -65,9 +65,9 @@ const ROLE = CFG.roles;
 
 
 const PERMS = {
-  add: [ROLE.dm.id, ROLE.moderator.id, ROLE.admin.id],
-  adjust: [ROLE.moderator.id, ROLE.admin.id],
-  set: [ROLE.admin.id],
+  add: [ROLE.dm.id, ROLE.moderator.id, ROLE.admin.id].filter((id): id is string => id !== undefined),
+  adjust: [ROLE.moderator.id, ROLE.admin.id].filter((id): id is string => id !== undefined),
+  set: [ROLE.admin.id].filter((id): id is string => id !== undefined),
   show: [] as string[], // empty => everyone
 };
 

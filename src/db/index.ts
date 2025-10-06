@@ -31,19 +31,47 @@ export async function initDb(dbFile = DEFAULT_DB) {
     );
   `);
 
-  // LFG presence tracking (table + index)
-  
+  // LFG presence tracking (table + index) [deprecated]
+  // await db.exec(`
+  //   CREATE TABLE IF NOT EXISTS lfg_presence (
+  //     userId  TEXT NOT NULL,
+  //     guildId TEXT NOT NULL,
+  //     tier    TEXT NOT NULL CHECK (tier IN ('low','mid','high','epic','pbp')),
+  //     since   INTEGER NOT NULL DEFAULT (strftime('%s','now')),
+  //     PRIMARY KEY (userId, tier),
+  //     FOREIGN KEY (userId) REFERENCES charlog(userId) ON DELETE CASCADE
+  //   );
+  //   CREATE INDEX IF NOT EXISTS idx_lfg_guild_tier ON lfg_presence (guildId, tier, since);
+  // `);
+  // drop above table since we've got a better LFG table and make sure indexes are gone
+  await db.exec(`DROP TABLE IF EXISTS lfg_presence; DROP INDEX IF EXISTS idx_lfg_guild_tier;`);
+
+
+  // New LFG status table + guild state table
   await db.exec(`
-    CREATE TABLE IF NOT EXISTS lfg_presence (
-      userId  TEXT NOT NULL,
-      guildId TEXT NOT NULL,
-      tier    TEXT NOT NULL CHECK (tier IN ('low','mid','high','epic','pbp')),
-      since   INTEGER NOT NULL DEFAULT (strftime('%s','now')),
-      PRIMARY KEY (userId, tier),
-      FOREIGN KEY (userId) REFERENCES charlog(userId) ON DELETE CASCADE
+    -- LFG registry
+    CREATE TABLE IF NOT EXISTS lfg_status (
+      userId    TEXT PRIMARY KEY,
+      guildId   TEXT NOT NULL,
+      name      TEXT NOT NULL,
+      startedAt INTEGER NOT NULL,  -- ms since epoch
+      low       INTEGER NOT NULL DEFAULT 0,
+      mid       INTEGER NOT NULL DEFAULT 0,
+      high      INTEGER NOT NULL DEFAULT 0,
+      epic      INTEGER NOT NULL DEFAULT 0,
+      pbp       INTEGER NOT NULL DEFAULT 0,
+      updatedAt INTEGER NOT NULL
     );
-    CREATE INDEX IF NOT EXISTS idx_lfg_guild_tier ON lfg_presence (guildId, tier, since);
-  `);
+
+    -- sticky board message id (and other guild-scoped flags)
+    CREATE TABLE IF NOT EXISTS guild_state (
+      guildId TEXT NOT NULL,
+      key     TEXT NOT NULL,
+      value   TEXT NOT NULL,
+      PRIMARY KEY (guildId, key)
+    );
+
+      `)
 
   
   // create the fund row if missing

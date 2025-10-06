@@ -5,6 +5,7 @@ import {
   GuildMember,
   PermissionFlagsBits,
   userMention,
+  MessageFlags,
 } from "discord.js";
 
 import { CONFIG } from "../config/resolved.js";
@@ -177,9 +178,7 @@ function collectUsers(ix: ChatInputCommandInteraction, max = 10) {
 function fmtGp(cp: number) {
   return (cp / 100).toFixed(2);
 }
-function fmtTp(units: number) {
-  return (units / 2).toFixed(1).replace(/\.0$/, "");
-}
+
 
 async function announceLevelChange(
   ix: ChatInputCommandInteraction,
@@ -212,50 +211,63 @@ async function handleCustom(ix: ChatInputCommandInteraction) {
   const reason = ix.options.getString("reason") ?? null;
 
   if (!recipients.length) {
-    await ix.reply({ ephemeral: true, content: "Add at least one user to reward." });
+    await ix.reply({ flags: MessageFlags.Ephemeral, content: "Add at least one user to reward." });
     return;
   }
   if (!tpAuto && xpIn === 0 && gpIn === 0 && tpIn === 0) {
-    await ix.reply({ ephemeral: true, content: "Provide at least one of XP, GP, or GT (or enable GT Auto)." });
+    await ix.reply({ flags: MessageFlags.Ephemeral, content: "Provide at least one of XP, GP, or GT (or enable GT Auto)." });
     return;
   }
 
-  const lines: string[] = [];
+  const fields: { name: string; value: string; inline?: boolean }[] = [];
+
   for (const u of recipients) {
     const before = await getPlayer(u.id);
     const level = levelForXP(before.xp);
 
-    // Compute delta
     let tpUnits = 0;
     if (tpAuto) {
       tpUnits = computePlayerTpStep(level);
     } else {
-      tpUnits = Math.round((tpIn ?? 0) * 2);
+      tpUnits = Math.round((tpIn ?? 0));
     }
-    const delta = computeCustomReward({ xp: xpIn, gp: gpIn, tp: tpUnits / 2 });
+    const delta = computeCustomReward({ xp: xpIn, gp: gpIn, tp: tpUnits });
 
-    // Apply
     const next = applyResourceDeltas(before, { ...delta, tpUnits });
     await saveSnapshot(u.id, { xp: next.xp, level: next.level, cp: next.cp, tp: next.tp, name: before.name });
 
-    // Announce level changes publicly also tag the user who owns the character
     if (next.levelsChanged !== 0) {
       await announceLevelChange(ix, u.id, before.name, next.level, next.levelsChanged);
     }
 
-    lines.push(
-      `${before.name}: +${delta.xp ?? 0} XP, +${fmtGp(delta.cp ?? 0)} GP, +${fmtTp(tpUnits)} GT → ` +
-      `XP ${next.xp.toLocaleString()} · L${next.level} · GP ${fmtGp(next.cp)} · GT ${fmtTp(next.tp)}`
-    );
+    const usernameLabel = `${u.username}`; // plain text, won’t ping
+    const heading = `${usernameLabel}: ${before.name}`;
+
+    const deltaStr = `+${delta.xp ?? 0} XP, +${fmtGp(delta.cp ?? 0)} GP, +${tpUnits} GT`;
+    const beforeStr = `XP ${before.xp.toLocaleString()} · L${level} · GP ${fmtGp(before.cp)} · GT ${before.tp}`;
+    const afterStr  = `XP ${next.xp.toLocaleString()} · L${next.level} · GP ${fmtGp(next.cp)} · GT ${next.tp}`;
+
+    fields.push({
+      name: heading,
+      value: `Before: ${beforeStr}\nAfter:  ${afterStr}\nChange: ${deltaStr}`,
+    });
   }
+
+  const mentionList = recipients.map((u) => userMention(u.id)).join(" ");
 
   const embed = new EmbedBuilder()
     .setTitle("Rewards applied")
-    .setDescription(lines.join("\n"))
+    .addFields(fields)
     .setFooter({ text: reason ? `Reason: ${reason}` : "—" });
 
-  await ix.reply({ embeds: [embed] });
+  // Content pings; embed shows details without pinging in field names
+  await ix.reply({
+    content: `Rewards applied to: ${mentionList}`,
+    embeds: [embed],
+    allowedMentions: { users: recipients.map((u) => u.id) }
+  });
 }
+
 
 /* DM: invoker claims bracketed DM reward for self */
 async function handleDm(ix: ChatInputCommandInteraction) {
@@ -277,8 +289,8 @@ async function handleDm(ix: ChatInputCommandInteraction) {
     .setTitle("DM Reward")
     .setDescription(
       `${before.name} (L${level})\n` +
-      `+${delta.xp ?? 0} XP, +${fmtGp(delta.cp ?? 0)} GP, +${fmtTp(delta.tpUnits ?? 0)} GT\n` +
-      `→ XP ${next.xp.toLocaleString()} · L${next.level} · GP ${fmtGp(next.cp)} · GT ${fmtTp(next.tp)}`
+      `+${delta.xp ?? 0} XP, +${fmtGp(delta.cp ?? 0)} GP, +${delta.tpUnits ?? 0} GT\n` +
+      `→ XP ${next.xp.toLocaleString()} · L${next.level} · GP ${fmtGp(next.cp)} · GT ${next.tp}`
     )
     .setFooter({ text: reason ? `Reason: ${reason}` : "—" });
 
@@ -309,8 +321,8 @@ async function handleStaff(ix: ChatInputCommandInteraction) {
     }
 
     lines.push(
-      `${before.name} (L${level}): +${delta.xp ?? 0} XP, +${fmtGp(delta.cp ?? 0)} GP, +${fmtTp(delta.tpUnits ?? 0)} GT → ` +
-      `XP ${next.xp.toLocaleString()} · L${next.level} · GP ${fmtGp(next.cp)} · GT ${fmtTp(next.tp)}`
+      `${before.name} (L${level}): +${delta.xp ?? 0} XP, +${fmtGp(delta.cp ?? 0)} GP, +${delta.tpUnits ?? 0} GT → ` +
+      `XP ${next.xp.toLocaleString()} · L${next.level} · GP ${fmtGp(next.cp)} · GT ${next.tp}`
     );
   }
 

@@ -1,5 +1,5 @@
 // commands/charinfo.ts
-import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from "discord.js";
+import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder, MessageFlags } from "discord.js";
 import { getDb } from "../db/index.js";
 
 export const data = new SlashCommandBuilder()
@@ -17,15 +17,15 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   );
   if (!row) {
     await interaction.reply({
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
       content: `No active character found for ${user}.`,
     });
     return;
   }
   const gp = (row.cp / 100).toFixed(2);
-  const tp = (row.tp / 2).toFixed(1);
+  const tp = (row.tp).toFixed(1);
  
-  await interaction.reply({ ephemeral: false, embeds: [
+  await interaction.reply({embeds: [
       new EmbedBuilder()
         .setColor(0x0099ff)
         .setThumbnail(user.displayAvatarURL())
