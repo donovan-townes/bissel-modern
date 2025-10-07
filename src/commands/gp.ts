@@ -3,6 +3,7 @@ import {
   SlashCommandBuilder,
   EmbedBuilder,
   GuildMember,
+  MessageFlags,
 } from "discord.js";
 import { CONFIG } from "../config/resolved.js";
 import { validateCommandPermissions } from "../config/validaters.js";
@@ -18,15 +19,13 @@ type PlayerRow = {
   tp: number;
 };
 
-async function getPlayerByUserId(userId: string): Promise<PlayerRow> {
+async function getPlayerByUserId(userId: string): Promise<PlayerRow | null>  {
   const db = await getDb();
   const row = await db.get<PlayerRow>(
     `SELECT userId, name, xp, level, cp, tp FROM charlog WHERE userId = ?`,
     userId
   );
-  if (row) return row;
-  // Default if not initiated yet
-  return { userId, name: `<@${userId}>`, xp: 0, level: 1, cp: 0, tp: 0 };
+  return row ?? null;
 }
 
 async function upsertPlayerCP(
@@ -161,19 +160,33 @@ export async function execute(ix: ChatInputCommandInteraction) {
   if (sub === "show") {
     const user = ix.options.getUser("user") ?? ix.user;
     const row = await getPlayerByUserId(user.id);
+    if (!row) {
+      return ix.reply({
+        flags: MessageFlags.Ephemeral,
+        content: `Hi ${user}, it looks like you don't have a character log yet. Please get initiated and re-run the command to view GP.`,
+      });
+    }
+
     const embed = new EmbedBuilder()
       .setAuthor({ name: `${row.name} — Wallet` })
       .addFields(
         { name: "GP", value: ` 💰 **${toGpString(row.cp)}**`, inline: false },
         { name: "CP (stored)", value: "🪙 " + row.cp.toString(), inline: false }
       );
-    return ix.reply({ ephemeral: true, embeds: [embed] });
+    return ix.reply({ flags: MessageFlags.Ephemeral, embeds: [embed] });
   }
 
   // mutating subcommands
   const user = ix.options.getUser("user", true);
   const reason = ix.options.getString("reason") ?? null;
   const row = await getPlayerByUserId(user.id);
+
+  if (!row) {
+    return ix.reply({
+      flags: MessageFlags.Ephemeral,
+      content: `Hi ${user}, it looks like there is no character log yet. Please initiate the character and re-run the command to view GP.`,
+    });
+  }
 
   if (sub === "add") {
     const amtGp = ix.options.getNumber("amount", true);
@@ -195,7 +208,7 @@ export async function execute(ix: ChatInputCommandInteraction) {
     const delta = toCp(amtGp);
     const next = Math.max(0, row.cp + delta);
     await upsertPlayerCP(user.id, next, row.name);
-    const sign = delta >= 0 ? "+" : "−";
+    const sign = delta >= 0 ? "+" : "-";
     await ix.reply({
       ephemeral: true,
       content: `OK. ${row.name}: **${sign}${Math.abs(amtGp)} GP** → ${toGpString(next)} GP`,

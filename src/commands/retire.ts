@@ -6,10 +6,12 @@ import {
   TextInputBuilder,
   TextInputStyle,
   ActionRowBuilder,
-  Events,
   ModalSubmitInteraction,
+  MessageFlags,
 } from 'discord.js';
 import { getDb } from '../db/index.js';
+
+import { CONFIG } from '../config/resolved.js';
 
 export const data = new SlashCommandBuilder()
   .setName('retire')
@@ -19,7 +21,6 @@ export const data = new SlashCommandBuilder()
      .setDescription('Target user to retire (Mod+ only).')
      .setRequired(false))
   .setDefaultMemberPermissions(PermissionFlagsBits.SendMessages)
-  .setDMPermission(false);
 
 // We’ll register an event listener in execute() for the modal submit.
 export async function execute(interaction: ChatInputCommandInteraction) {
@@ -31,7 +32,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     const member = await interaction.guild?.members.fetch(interaction.user.id);
     const canManage =
       member?.permissions.has(PermissionFlagsBits.KickMembers) ||
-      member?.roles.cache.some(r => ['GM', 'GMs', 'Staff'].includes(r.name));
+      member?.roles.cache.some(r => Object.values(CONFIG.guild?.config.roles ?? {}).map(role => role.id).includes(r.id));
     if (!canManage) {
       return interaction.reply({
         content: 'Only moderators or staff can retire another adventurer.',
@@ -64,7 +65,7 @@ export async function handleModal(interaction: ModalSubmitInteraction) {
 
   const input = interaction.fields.getTextInputValue('confirm_text');
   if (input !== 'RETIRE') {
-    return interaction.reply({ content: 'Retirement cancelled — confirmation text must be RETIRE.', ephemeral: true });
+    return interaction.reply({ content: 'Retirement cancelled — confirmation text must be RETIRE.', flags: MessageFlags.Ephemeral });
   }
 
   const targetId = interaction.customId.replace('retire-confirm-', '');

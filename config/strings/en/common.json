@@ -1,27 +1,10 @@
 {
+  "_comment": "Common strings used in multiple places, including command descriptions and responses. Edit this file to change them globally. Do not add command-specific strings here.",
   "brand.guildMember": "Guild Member",
   "brand.bot": "Quil",
   "welcome": {
-    "title": "Welcome to the Adventurers Guild of Remnant!",
-    "description": "This is the central hub for all your adventuring needs. Here you can track your experience points (XP), gold pieces (GP), and golden tickets (GT) earned through quests and adventures. Use the commands below to manage your rewards and stay updated on your progress.",
-    "commands": {
-      "viewStatus": {
-        "command": "/status",
-        "description": "View your current XP, GP, and GT balances."
-      },
-      "claimRewards": {
-        "command": "/reward claim",
-        "description": "Claim rewards for completed quests or adventures."
-      },
-      "checkGuildFund": {
-        "command": "/guildfund",
-        "description": "Check the total GP and GT in the guild fund."
-      },
-      "manageGT": {
-        "command": "/gt",
-        "description": "Manage your Golden Tickets (GT)."
-      }
-    },
-    "footer": "Happy adventuring! May your quests be successful and your rewards plentiful."
+    "title": "Welcome to the Adventurers Guild of Remnant, {name}!",
+    "description": "We're thrilled to have you join our community of adventurers. As a new member, you start at Level 3 with 900 XP and 80 GP. Use your skills wisely and embark on quests to earn more rewards! 🪶",
+    "footer": "Happy adventuring! May your quests be successful and your rewards plentiful. 🪶"
   }
 }

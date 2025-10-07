@@ -5,8 +5,11 @@ import {
   EmbedBuilder,
 } from 'discord.js';
 
-const DM_ROLE_NAME = 'Available to DM';
+import { CONFIG } from '../config/resolved.js';
 
+const CFG = CONFIG.guild!.config;
+
+const DM_ROLE_NAME = CFG.features?.lfg?.roles?.dmAvailable ;
 export const data = new SlashCommandBuilder()
   .setName('dm')
   .setDescription('DM availability controls')
@@ -17,8 +20,9 @@ export const data = new SlashCommandBuilder()
     .setName('list')
     .setDescription('Show who is currently Available to DM'))
   // Match legacy: gate the toggle for GMs/Staff; list is for everyone.
-  .setDefaultMemberPermissions(PermissionFlagsBits.KickMembers) // Mod+ can see it; we re-check inside to open /dm list to all
+  .setDefaultMemberPermissions(PermissionFlagsBits.SendMessages);
 
+// ---- Executor ---- 
 export async function execute(interaction: ChatInputCommandInteraction) {
   const sub = interaction.options.getSubcommand(true);
   const guild = interaction.guild;

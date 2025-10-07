@@ -9,7 +9,7 @@ const FUND_ID = CONFIG.system.fundId;
 export const data = new SlashCommandBuilder()
   .setName('guildfund')
   .setDescription('Show the Adventurers Guild fund balance')
-  .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild) // for now restrict to staff
+  .setDefaultMemberPermissions(PermissionFlagsBits.KickMembers) // for now restrict to staff
 
 export async function execute(interaction: ChatInputCommandInteraction) {
   const db = getDb();
@@ -34,7 +34,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         { name: 'GP', value: "💰 " + gp, inline: true },
         { name: 'GT', value: "🎫 " + tp, inline: true },
       ],
-      footer: { text: 'Stored as cp (x100) and half-GT (x2) internally' }
+      footer: { text: 'GP is stored as cp (x100) internally' }
     }]
   });
 }

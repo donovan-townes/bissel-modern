@@ -20,16 +20,13 @@ import { getDb } from "../db/index.js";
 
 type PlayerRow = { userId: string; name: string; xp: number; level: number };
 
-async function getPlayerByUserId(userId: string): Promise<PlayerRow> {
+async function getPlayerByUserId(userId: string): Promise<PlayerRow | null> {
   const db = await getDb();
     const row = await db.get<PlayerRow>(
     `SELECT userId, name, xp, level FROM charlog WHERE userId = ?`,
     userId
     );
-    if (row) return row;
-
-    
-  return { userId, name: `<@${userId}>`, xp: 0, level: 1 };
+    return row ?? null;
 }
 
 async function updatePlayerXPLevel(userId: string, xp: number, level: number, displayName?: string) {
@@ -160,6 +157,11 @@ export async function execute(ix: ChatInputCommandInteraction) {
   if (sub === "show") {
     const user = ix.options.getUser("user") ?? ix.user;
     const row = await getPlayerByUserId(user.id);
+    if (!row) {
+      return ix.reply({ flags: MessageFlags.Ephemeral, content: `${user.username} has no recorded XP.` });
+    }
+
+
     const level = levelForXP(row.xp);
     const { curr, next } = bandFor(level);
     const nextDisp = next === null ? "—" : `${next.toLocaleString()} XP (to L${level + 1})`;
@@ -191,9 +193,13 @@ export async function execute(ix: ChatInputCommandInteraction) {
   const reason = ix.options.getString("reason") ?? null;
   const before = await getPlayerByUserId(user.id);
 
+  if (!before) {
+    return ix.reply({ flags: MessageFlags.Ephemeral, content: `${user.username} has no recorded XP.` });
+  } 
+
   if (sub === "add") {
     const amt = ix.options.getInteger("amount", true);
-    if (amt <= 0) return ix.reply({ ephemeral: true, content: "Amount must be ≥ 1." });
+    if (amt <= 0) return ix.reply({ flags: MessageFlags.Ephemeral, content: "Amount must be ≥ 1." });
 
     const res = applyXP({ xp: before.xp, level: before.level }, amt);
     await updatePlayerXPLevel(user.id, res.xp, res.level);
@@ -210,7 +216,7 @@ export async function execute(ix: ChatInputCommandInteraction) {
     // });
 
     await ix.reply({
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
       content: `OK. ${before.name}: **+${amt} XP** → ${res.xp.toLocaleString()} XP, level ${before.level} → ${res.level}`,
     });
 
@@ -240,7 +246,7 @@ export async function execute(ix: ChatInputCommandInteraction) {
 
     const sign = amt >= 0 ? "+" : "−";
     await ix.reply({
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
       content: `OK. ${before.name}: **${sign}${Math.abs(amt)} XP** → ${res.xp.toLocaleString()} XP, level ${before.level} → ${res.level}`,
     });
 

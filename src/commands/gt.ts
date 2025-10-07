@@ -3,6 +3,7 @@ import {
   SlashCommandBuilder,
   EmbedBuilder,
   GuildMember,
+  MessageFlags,
 } from "discord.js";
 import { CONFIG } from "../config/resolved.js";
 import { getDb } from "../db/index.js";
@@ -12,14 +13,13 @@ import { validateCommandPermissions } from "../config/validaters.js";
 // Note that GT is actually TP (Training Points) in the database. Changed via guild decision.
 type PlayerRow = { userId: string; name: string; xp: number; level: number; cp: number; tp: number };
 
-async function getPlayerByUserId(userId: string): Promise<PlayerRow> {
+async function getPlayerByUserId(userId: string): Promise<PlayerRow | null>  {
   const db = await getDb();
   const row = await db.get<PlayerRow>(
     `SELECT userId, name, xp, level, cp, tp FROM charlog WHERE userId = ?`,
     userId
   );
-  if (row) return row;
-  return { userId, name: `<@${userId}>`, xp: 0, level: 1, cp: 0, tp: 0 };
+  return row ?? null;
 }
 
 async function upsertPlayerTP(userId: string, nextTPUnits: number, displayName?: string) {
@@ -82,8 +82,7 @@ export const data = new SlashCommandBuilder()
       .addUserOption(o => o.setName("user").setDescription("Target").setRequired(true))
       .addNumberOption(o => o.setName("amount").setDescription("Absolute GT (>=0)").setRequired(true).setMinValue(0))
       .addStringOption(o => o.setName("reason").setDescription("Why? (audit)").setMaxLength(200))
-  )
-  .setDMPermission(false);
+  );
 
 export async function execute(ix: ChatInputCommandInteraction) {
   const sub = ix.options.getSubcommand();
@@ -94,6 +93,13 @@ export async function execute(ix: ChatInputCommandInteraction) {
   if (sub === "show") {
     const user = ix.options.getUser("user") ?? ix.user;
     const row = await getPlayerByUserId(user.id);
+    if (!row) {
+      return ix.reply({
+        flags: MessageFlags.Ephemeral,
+        content: `Hi ${user}, it looks like you don't have a character log yet. Please get initiated and re-run the command to view GT.`,
+      });
+    }
+  
     const embed = new EmbedBuilder()
       .setAuthor({ name: `${row.name} — Golden Tickets` })
       .addFields(
@@ -106,6 +112,13 @@ export async function execute(ix: ChatInputCommandInteraction) {
   const user = ix.options.getUser("user", true);
   const reason = ix.options.getString("reason") ?? null;
   const row = await getPlayerByUserId(user.id);
+  if (!row) {
+    return ix.reply({
+      flags: MessageFlags.Ephemeral,
+      content: `Hi ${user}, it looks like there is no character log yet. Please initiate the character and re-run the command to view GT.`,
+    });
+  }
+  
 
   if (sub === "add") {
     const amt = ix.options.getNumber("amount", true);

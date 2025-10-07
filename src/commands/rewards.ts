@@ -33,14 +33,13 @@ type PlayerRow = {
   tp: number; // stored as half-points (0.5 => 1)
 };
 
-async function getPlayer(userId: string): Promise<PlayerRow> {
+async function getPlayer(userId: string): Promise<PlayerRow | null> {
   const db = await getDb();
   const row = await db.get<PlayerRow>(
     `SELECT userId, name, xp, level, cp, tp FROM charlog WHERE userId = ?`,
     userId
   );
-  if (row) return row;
-  return { userId, name: userMention(userId), xp: 0, level: 1, cp: 0, tp: 0 };
+  return row ?? null;
 }
 
 async function saveSnapshot(userId: string, snap: { xp: number; level: number; cp: number; tp: number; name?: string }) {
@@ -140,7 +139,6 @@ export const data = new SlashCommandBuilder()
       .addUserOption((o) => o.setName("user5").setDescription("Target #5"))
       .addStringOption((o) => o.setName("reason").setDescription("Why? (optional)").setMaxLength(200))
   )
-  .setDMPermission(false);
 
 /* ──────────────────────────────────────────────────────────────────────────────
    EXECUTOR
@@ -154,7 +152,7 @@ export async function execute(ix: ChatInputCommandInteraction) {
     hasAnyRole(member, PERMS[sub]) || isAdmin(member) || isDevBypass(ix);
 
   if (!allowed) {
-    await ix.reply({ ephemeral: true, content: "You don’t have permission to use this." });
+    await ix.reply({ flags: MessageFlags.Ephemeral, content: "You don't have permission to use this." });
     return;
   }
 
@@ -223,6 +221,11 @@ async function handleCustom(ix: ChatInputCommandInteraction) {
 
   for (const u of recipients) {
     const before = await getPlayer(u.id);
+    if (!before) {
+      await ix.reply({ flags: MessageFlags.Ephemeral, content: `${u.username} is not in the system and has no recorded XP.` });
+      return;
+    }
+
     const level = levelForXP(before.xp);
 
     let tpUnits = 0;
@@ -275,6 +278,12 @@ async function handleDm(ix: ChatInputCommandInteraction) {
   const reason = ix.options.getString("reason") ?? null;
 
   const before = await getPlayer(u.id);
+
+  if (!before) {
+    await ix.reply({ flags: MessageFlags.Ephemeral, content: `You have no recorded XP and cannot claim a DM reward.` });
+    return;
+  }
+
   const level = levelForXP(before.xp);
 
   const delta = computeDmReward(level);
@@ -310,6 +319,13 @@ async function handleStaff(ix: ChatInputCommandInteraction) {
   const lines: string[] = [];
   for (const u of recipients) {
     const before = await getPlayer(u.id);
+    if (!before) {
+      await ix.reply({ flags: MessageFlags.Ephemeral, content: `${u.username} is not in the system and has no recorded XP.` });
+      return;
+    }
+
+
+
     const level = levelForXP(before.xp);
 
     const delta = computeStaffReward(level);

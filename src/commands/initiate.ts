@@ -3,8 +3,10 @@ import {
   SlashCommandBuilder,
   ChatInputCommandInteraction,
   PermissionFlagsBits,
+  userMention,
 } from 'discord.js';
 import { getDb } from '../db/index.js';
+import { t } from '../lib/i18n.js';
 
 export const data = new SlashCommandBuilder()
   .setName('initiate')
@@ -48,16 +50,23 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
   // reply (no role changes, no fund debit)
   await interaction.reply({
+    content: targetUser.id === interaction.user.id
+      ? `📣 Welcome, **${userMention(targetUser.id)}**! Your adventurer record has been created at Level 3 with 900 XP and 80 GP. 🪶`
+      : `🪶 Adventurer record for **${userMention(targetUser.id)}** has been created at Level 3 with 900 XP and 80 GP. 🪶`,
     embeds: [{
-      title: `Welcome to the Adventurer's Guild of Remnant, ${rawName}!`,
-      description: targetUser.toString(),
+      title: t('welcome.title', { name: rawName }),
+      author: { name: targetUser.displayName, icon_url: targetUser.displayAvatarURL() },
+      description: t('welcome.description', { name: rawName }),
       fields: [
-        { name: 'Level', value: '3', inline: true },
-        { name: 'XP',    value: '900', inline: true },
-        { name: 'GP',    value: '80.00', inline: true },
-        { name: 'GT',    value: '0.0', inline: true },
+        { name: '⬆️ Level', value: '3', inline: false },
+        { name: '💪 XP',    value: '900', inline: false },
+        { name: '💰 GP',    value: '80.00', inline: true },
+        { name: '🎫 GT',    value: '0.0', inline: true },
       ],
-      footer: { text: 'guild.welcome-message.footer' },
-    }],
+      footer: { 
+        text: t('welcome.footer'), 
+        ...(interaction.client.user?.displayAvatarURL() ? { icon_url: interaction.client.user.displayAvatarURL() } : {})
+      },
+      color: 0x00AAFF,}],
   });
 }

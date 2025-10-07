@@ -101,8 +101,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
   }
 
   if (interaction.isModalSubmit()) {
-    // You can either check directly for retire modal IDs,
-    // or dynamically dispatch if you add more modals later.
+    //dynamically dispatch if you add more modals later.
     if (interaction.customId.startsWith('retire-confirm-')) {
       try {
         await retire.handleModal(interaction);
