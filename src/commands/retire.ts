@@ -36,7 +36,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     if (!canManage) {
       return interaction.reply({
         content: 'Only moderators or staff can retire another adventurer.',
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
     }
   }
@@ -83,7 +83,7 @@ export async function handleModal(interaction: ModalSubmitInteraction) {
   if (!row) {
     return interaction.reply({
       content: 'No active adventurer record found for that user.',
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   }
 
@@ -107,6 +107,18 @@ export async function handleModal(interaction: ModalSubmitInteraction) {
   const note = selfAction ? '' : ` (retired by ${actor})`;
 
   await interaction.reply({
-    content: `**${targetMention}** has been retired${note}. Their record has been removed from the database.`,
+    content: `**${targetMention}**'s character: **${row.name}** has been retired ${note}. Their record has been removed from the database.`,
+    embeds: [{
+        title: `Retired Adventurer: ${row.name}`,
+        fields: [
+            { name: 'Level', value: row.level?.toString() ?? 'N/A', inline: true },
+            { name: 'XP', value: row.xp?.toString() ?? 'N/A', inline: true },
+            { name: 'GP', value: row.cp !== undefined ? (row.cp / 100).toFixed(2) : 'N/A', inline: true },
+            { name: 'GP', value: row.tp?.toString() ?? 'N/A', inline: true },
+        ],
+        footer: { text: 'Fair winds and following seas, adventurer! Please store your character sheet safely.' },
+        color: 0xFF0000,
+    }]
   });
 }
+

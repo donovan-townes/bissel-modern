@@ -149,7 +149,7 @@ export async function execute(ix: ChatInputCommandInteraction) {
 
   // Permissions
   const allowed =
-    hasAnyRole(member, PERMS[sub]) || isAdmin(member) || isDevBypass(ix);
+    hasAnyRole(member, PERMS[sub].filter((id): id is string => id !== undefined)) || isAdmin(member) || isDevBypass(ix);
 
   if (!allowed) {
     await ix.reply({ flags: MessageFlags.Ephemeral, content: "You don't have permission to use this." });
@@ -164,10 +164,12 @@ export async function execute(ix: ChatInputCommandInteraction) {
 /* ──────────────────────────────────────────────────────────────────────────────
    HANDLERS
 ────────────────────────────────────────────────────────────────────────────── */
+type UserOptionName = `user${number}`;
+
 function collectUsers(ix: ChatInputCommandInteraction, max = 10) {
   const users = [];
   for (let i = 1; i <= max; i++) {
-    const u = ix.options.getUser(`user${i}` as any);
+    const u = ix.options.getUser(`user${i}` as UserOptionName);
     if (u) users.push(u);
   }
   return users;

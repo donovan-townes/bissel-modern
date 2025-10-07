@@ -20,7 +20,6 @@ import {
   purgeLfgBefore,
 } from "../db/lfg.js";
 import {
-  autoTierForLevelFromXP,
   buildLfgEmbed,
   aggregateList,
   setTier,
@@ -128,10 +127,7 @@ async function refreshBoard(ix: ChatInputCommandInteraction, reason?: string) {
   const embed = buildLfgEmbed(aggregateList(entries));
 
   // If no channel configured, just bail silently.
-//   const boardChanId = LFG_BOARD_CHANNEL_ID;
-  const developChanId = "1420807995893223496"; // temp: dev channel
-  const boardChanId = developChanId;
-
+  const boardChanId = LFG_BOARD_CHANNEL_ID;
   if (!boardChanId) return;
 
   // Try to edit the sticky message; else send new and store id.
@@ -141,7 +137,6 @@ async function refreshBoard(ix: ChatInputCommandInteraction, reason?: string) {
   const existingId = await getGuildState(guildId, BOARD_KEY);
   if (existingId) {
     try {
-      // @ts-expect-error: text channel narrowing omitted
       const msg = await chan.messages.fetch(existingId);
       await msg.edit({ embeds: [embed] });
       return;
@@ -149,8 +144,8 @@ async function refreshBoard(ix: ChatInputCommandInteraction, reason?: string) {
       // falls through to create new
     }
   }
-  // @ts-expect-error: text channel narrowing omitted
   const sent = await chan.send({ embeds: [embed] });
+  console.log(`LFG: Posted new board message (${reason ?? "auto"})`);
   await setGuildState(guildId, BOARD_KEY, sent.id);
 }
 
@@ -339,7 +334,7 @@ async function handleToggle(ix: ChatInputCommandInteraction) {
 
   return ix.reply({
     flags: MessageFlags.Ephemeral,
-    content: `${currentlyOn ? "Removed" : "Added"} **${tier.toUpperCase()}**. You are now LFG in: ${LFG_ORDER.filter(t => (entry as any)[t]).map(t => `\`${t}\``).join(", ") || "none"}.`,
+    content: `${currentlyOn ? "Removed" : "Added"} **${tier.toUpperCase()}**. You are now LFG in: ${LFG_ORDER.filter(t => entry[t as LfgTier]).map(t => `\`${t}\``).join(", ") || "none"}.`,
   });
 }
 
