@@ -25,7 +25,18 @@
     "db:reseed:me": "npm run db:wipe && npm run db:seed:me",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["discord", "bot", "dnd", "d&d", "rpg", "remnant", "dungeon", "adventure", "dice", "tabletop"],
+  "keywords": [
+    "discord",
+    "bot",
+    "dnd",
+    "d&d",
+    "rpg",
+    "remnant",
+    "dungeon",
+    "adventure",
+    "dice",
+    "tabletop"
+  ],
   "author": "Donovan Townes",
   "license": "MIT License",
   "dependencies": {

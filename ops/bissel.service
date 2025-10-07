@@ -1,0 +1,15 @@
+[Unit]
+Description=Quil Discord Bot
+After=network.target
+
+[Service]
+Type=simple
+User=quil
+WorkingDirectory=/srv/bissel-modern
+EnvironmentFile=/srv/bissel-modern/.env
+ExecStart=/usr/bin/npm start
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
