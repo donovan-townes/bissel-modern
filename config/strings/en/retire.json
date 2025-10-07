@@ -1,0 +1,54 @@
+{
+    "retire": {
+    "noAdventurer": [
+        "🪶 Can’t retire what’s not recorded. **{name}** isn’t in the ledger.",
+        "🪶 No entry found for **{name}**. Maybe they never existed?",
+        "🪶 The quill searches but finds no record of **{name}**. Are you sure they were ever here?",
+        "🪶 I flipped through the pages, but **{name}** is nowhere to be found. Ghosts don’t get archived.",
+        "🪶 No active adventurer record for **{name}**. Perhaps they were a figment of your imagination?"
+    ],
+    "cancelled": [
+        "🪶 Retirement cancelled. The ink remains fresh.",
+        "🪶 Parchment intact. No changes made.",
+        "🪶 Quill rests. No retirement recorded.",
+        "🪶 Ledger unchanged. Retirement aborted.",
+        "🪶 The page stays open. Retirement not processed."
+    ],
+    "confirmLabel": [
+        "🪶 Sealing the deed, eh? Type RETIRE to confirm.",
+        "🪶 Ready to close the book? Type RETIRE to proceed.",
+        "🪶 Final step: Type RETIRE to archive this adventurer.",
+        "🪶 Almost done. Type RETIRE to finalize the retirement.",
+        "🪶 Last chance. Type RETIRE to confirm the retirement."
+    ],
+    "title": [
+      "Closing the Ledger: {name}",
+      "Final Entry Filed: {name}",
+      "Quil Archives {name}",
+      "Ink Dried, Page Turned: {name}",
+      "Record Sealed: {name}"
+    ],
+    "userNotice": [
+      "🪶 I’ve archived: **{name}**’s character sheet below for your records.",
+      "🪶 For posterity: **{name}**’s final sheet is attached below.",
+      "🪶 The complete record for: **{name}** final sheet has been preserved below.",
+      "🪶 Archival copy of: **{name}**’s sheet is included for your ledger.",
+      "🪶 Filed under ‘Retired’: **{name}**. See the embed below."
+    ],
+    "description": [
+      "With a neat stroke, I mark **{name}** as retired. The adventures don’t disappear—they simply settle into the margins where legends live. Thank you for the stories; I’ll keep the record legible.",
+      "The page has been turned for **{name}**. No spills, no smudges—just a clean close on a well-worn chapter. Should the road call again, the index will remember where you left off.",
+      "I’ve sealed **{name}**’s entry and pressed the ribbon flat. What follows is memory, what remains is record. When you’re ready for a new beginning, I’ll have fresh parchment waiting.",
+      "Final totals tallied; **{name}** is archived with care. Your quests echo between these lines, and the ledger is better for it. Rest easy—your numbers add up to something brave.",
+      "Ink dried; **{name}** joins the guild’s quiet gallery. The feats are etched, the coin accounted, the tales intact. New quills, new chapters await when you’re ready.",
+      "All columns balanced and the signature set: **{name}** retires with dignity. The story holds, the math checks, the memories stay crisp. I’ll be here when the next name arrives."
+    ],
+    "footer": [
+      "🪶 Quil — Archive complete, margins immaculate.",
+      "🪶 Logged by Quil — Another chapter shelved with care.",
+      "🪶 Quil — Where endings are tidy and legends are footnoted.",
+      "🪶 Filed by Quil — Page turned, ledger balanced.",
+      "🪶 Quil — The ink rests; the story doesn’t."
+    ]
+  }
+}

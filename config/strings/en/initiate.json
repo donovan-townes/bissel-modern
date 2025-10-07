@@ -1,0 +1,35 @@
+{
+    "initiate": {
+    "title": [
+      "Fresh Ink: {name}",
+      "New Ledger Entry: {name}",
+      "Quil Registers a New Adventurer: {name}",
+      "Filed & Feathered: {name}",
+      "Welcome to the Ledger, {name}"
+    ],
+    "userGreeting": [
+      "🪶 The ledger opens… Welcome, **{name}**. Try not to spill anything on the parchment.",
+      "🪶 A new page turns. **{name}**, your story is now officially in the book.",
+      "🪶 Ink to parchment—**{name}** enters the guild rolls. Don’t smudge the margins.",
+      "🪶 Signature received. **{name}**, you’re now an adventurer on record. Do behave. (Or don’t.)",
+      "🪶 I’ve logged you properly, **{name}**. Please keep your chaos within the lines.",
+      "🪶 Welcome, **{name}**. Consider this the neatest part of your career."
+    ],
+    "description": [
+      "Quil scratches your name into the guild ledger with a satisfied flourish. Your kit is basic, your pockets jingle (a little), and your fate is now a matter of public record. Adventure awaits; try not to get any dragon on the paperwork.",
+      "With a tidy stroke of the quill, your details are etched into the archive. You’ve got a level, some coin, and an alarming amount of optimism. Spend wisely, report honestly, and I’ll keep the ink flowing.",
+      "The parchment accepts your name, the ledger accepts your debt, and destiny sighs audibly. Gear up, keep receipts, and remember: I balance the books even when you don’t.",
+      "Your entry is clean; it won’t stay that way. Missions blot pages, gold stains margins, and victories crease corners. Keep me updated and I’ll keep you official.",
+      "I’ve filed you under ‘Promising, Possibly Chaotic.’ Treasure converts to tidy numbers; trouble converts to longer entries. Bring me both, and we’ll get along.",
+      "Welcome to the guild bureaucracy masquerading as heroism. You bring the feats; I’ll bring the ink. Together we make history—or at least legible notes."
+    ],
+    "footer": [
+      "🪶 Quil, Guild Scribe — Mind the margins.",
+      "🪶 Logged by Quil — Where chaos meets clean columns.",
+      "🪶 Quil keeps the ink; you keep the receipts.",
+      "🪶 Filed by Quil — Ledger balanced (for now).",
+      "🪶 Quil — Writing history one snide remark at a time.",
+      "🪶 Officially recorded. Unofficially judged. — Quil"
+    ]
+  }
+}

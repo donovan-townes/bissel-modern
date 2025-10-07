@@ -50,13 +50,11 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
   // reply (no role changes, no fund debit)
   await interaction.reply({
-    content: targetUser.id === interaction.user.id
-      ? `📣 Welcome, **${userMention(targetUser.id)}**! Your adventurer record has been created at Level 3 with 900 XP and 80 GP. 🪶`
-      : `🪶 Adventurer record for **${userMention(targetUser.id)}** has been created at Level 3 with 900 XP and 80 GP. 🪶`,
+    content: t('initiate.userGreeting', { name: userMention(targetUser.id) }),
     embeds: [{
-      title: t('welcome.title', { name: rawName }),
+      title: t('initiate.title', { name: rawName }),
       author: { name: targetUser.displayName, icon_url: targetUser.displayAvatarURL() },
-      description: t('welcome.description', { name: rawName }),
+      description: t('initiate.description', { name: rawName }),
       fields: [
         { name: '⬆️ Level', value: '3', inline: false },
         { name: '💪 XP',    value: '900', inline: false },
@@ -64,7 +62,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         { name: '🎫 GT',    value: '0.0', inline: true },
       ],
       footer: { 
-        text: t('welcome.footer'), 
+        text: t('initiate.footer'), 
         ...(interaction.client.user?.displayAvatarURL() ? { icon_url: interaction.client.user.displayAvatarURL() } : {})
       },
       color: 0x00AAFF,}],

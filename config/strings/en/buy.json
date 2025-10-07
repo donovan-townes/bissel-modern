@@ -1,0 +1,41 @@
+{
+    "buy": {
+        "notInResourceChannel": [
+            "🪶 Wrong parchment. This belongs in the Resource channel.",
+            "🪶 Transactions are recorded in the Resource channel, not here.",
+            "🪶 Let’s keep the ledger tidy — use the Resource channel for this."
+        ],
+        "errors": {
+            "invalidItem": [
+            "Name the item, please. My ledger doesn’t accept ‘vibes’.",
+            "If you can’t name it, you can’t buy it. Even I have standards.",
+            "You didn’t tell me what you’re buying. Try again with a name."
+            ],
+            "invalidAmount": [
+            "That isn’t a valid amount. Positive numbers only.",
+            "I can’t transcribe imaginary or negative gold. Try again.",
+            "This ledger only accepts real, positive coin."
+            ],
+            "invalidPrecision": [
+            "GP uses two decimal places. Please round neatly.",
+            "Too many decimals. My ink refuses to wobble that far.",
+            "Quil prefers cents, not dust. Two decimals, please."
+            ],
+            "noFunds": [
+            "Your coin purse is lighter than a feather. Insufficient funds.",
+            "Not enough GP for that purchase. The ledger frowns.",
+            "Balance too low. Consider selling something shiny first."
+            ],
+            "noPlayerRecord": [
+            "Hi {user}, I can’t find your character log. Please `/initiate` first, then try again.",
+            "No ledger entry for you yet, {user}. Initiate your character to record purchases.",
+            "I don’t see a record for {user}. Get initiated and we’ll ink the purchase."
+            ]
+        },
+        "purchaseSuccess": [
+            "Purchase complete: **{item}** for **{amount} GP**. New total: **{newGp} GP**.",
+            "Logged: **{item}** bought for **{amount} GP**. Balance now **{newGp} GP**.",
+            "Ledger updated — **{item}** purchased (**{amount} GP**). Current GP: **{newGp}**."
+        ]
+    }
+}

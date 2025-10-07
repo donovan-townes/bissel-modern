@@ -1,12 +1,13 @@
 import {
   SlashCommandBuilder,
   ChatInputCommandInteraction,
-  EmbedBuilder,
   GuildMember,
   MessageFlags,
 } from "discord.js";
 import { CONFIG } from "../config/resolved.js";
 import { getDb } from "../db/index.js";
+
+import { t } from "../lib/i18n.js";
 
 type PlayerRow = {
   userId: string;
@@ -19,7 +20,6 @@ type PlayerRow = {
 
 const CFG = CONFIG.guild!.config;
 const REWARDS_CHANNEL_ID = CFG.channels?.resourceTracking || null;
-// const DEV_CHANNEL_ID = "1420807995893223496"
 
 // helpers
 const toCp = (gp: number) => Math.round(gp * 100);
@@ -59,12 +59,11 @@ export async function execute(ix: ChatInputCommandInteraction) {
   // Basic permission scaffold (everyone can use; still validates bot perms)
 
   // Channel guard: only allowed in Resource channel (or test override if you use one)
-
   if (REWARDS_CHANNEL_ID && ix.channel?.id !== REWARDS_CHANNEL_ID) {
     await ix.reply({
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
       content:
-        "This command can only be used in the Resource channel for tracking.",
+        t('sell.notInResourceChannel'),
     });
     return;
   }
@@ -77,57 +76,59 @@ export async function execute(ix: ChatInputCommandInteraction) {
 
   // sanity checks
   if (!item) {
-    await ix.reply({ ephemeral: true, content: "Please provide an item name." });
+    await ix.reply({ flags: MessageFlags.Ephemeral, content: t('sell.errors.invalidItem') });
     return;
   }
   if (!(amountGp > 0)) {
     await ix.reply({
-      ephemeral: true,
-      content: "Amount must be a positive number greater than 0.",
+      flags: MessageFlags.Ephemeral,
+      content: t('sell.errors.invalidAmount'),
     });
     return;
   }
   // reject more than 2 decimal places (GP precision)
   if (Math.round(amountGp * 100) !== amountGp * 100) {
     await ix.reply({
-      ephemeral: true,
-      content: "Please specify a valid GP amount (max two decimals).",
+      flags: MessageFlags.Ephemeral,
+      content: t('sell.errors.invalidPrecision'),
     });
     return;
   }
 
   const row = await getPlayer(user.id);
-  const displayName = row?.name ?? (member.displayName || user.username);
-
-  // Make sure the row exists (keeps behavior graceful for first-time users)
+  
+  // player must have a record to sell items
   if (!row) {
     await ix.reply({
-        flags: MessageFlags.Ephemeral,
-        content:
-            `Hi ${user}, it looks like you don't have a character log yet. Please get initiated and re-run the command to record your sale.`,
+      flags: MessageFlags.Ephemeral,
+      content:
+      t('sell.errors.noPlayerRecord', { user: user.toString() }),
     });
     return;
   }
-
-
+  
+  
   const deltaCp = toCp(amountGp);
   await addCp(user.id, deltaCp);
-
+  
   const updated = await getPlayer(user.id);
   const newGp = updated ? toGp(updated.cp) : toGp((row?.cp ?? 0) + deltaCp);
+  
+  // Embeds disabled as requested per guild. Code left in case we want to re-enable later.
+  // const displayName = row?.name ?? (member.displayName || user.username);
+  // const embed = new EmbedBuilder()
+  //   .setTitle("📜 Sale Recorded")
+  //   .setDescription(
+  //     t('sell.embed.description', { display: displayName, item, amount: amountGp.toFixed(2), newGp })
+  //   )
+  //   .setFooter({ text: t('sell.embed.footer', { tag: user.tag }) })
+  //   .setTimestamp();
 
-  // Legacy-style public audit line + a clean embed
-  const embed = new EmbedBuilder()
-    .setTitle("📜 Sale Recorded")
-    .setDescription(
-      `**${displayName}** sold **${item}** for **${amountGp.toFixed(
-        2
-      )} GP**.\n**New GP Total:** ${newGp} GP`
-    )
-    .setFooter({ text: `Transacted by ${user.tag}` })
-    .setTimestamp();
-
-  await ix.reply({ embeds: [embed] });
+  await ix.reply({ 
+    content: t('sell.transactionSuccess', {item, amount: amountGp.toFixed(2), newGp})
+    // embeds: [embed] });
+  
+  });
 }
 
 export default { data, execute };

@@ -38,7 +38,7 @@ export function tiersOf(e: LfgEntry): LfgTier[] {
 export function setTier(e: LfgEntry, tier: LfgTier, on: boolean, nowMs = Date.now()): LfgEntry {
   const wasAny = anyTierOn(e);
   const next = { ...e, updatedAt: nowMs };
-  next[tier] = on ? 1 : 0 as any;
+  next[tier] = (on ? 1 : 0) as 0|1;
   // if enabling and previously nothing was on, stamp startedAt
   if (on && !wasAny) next.startedAt = nowMs;
   // if disabling and nothing remains, keep startedAt (history) or you can clear it
@@ -67,7 +67,7 @@ export function aggregateList(entries: LfgEntry[], nowMs = Date.now()): LfgList 
     if (e.high) list.high.push(mk(e));
     if (e.epic) list.epic.push(mk(e));
   }
-  for (const k of ORDER) (list as any)[k].sort((a: LfgSectionRow, b: LfgSectionRow) => a.startedAt - b.startedAt);
+  for (const k of ORDER) (list as Record<LfgTier, LfgSectionRow[]>)[k].sort((a: LfgSectionRow, b: LfgSectionRow) => a.startedAt - b.startedAt);
   return list;
 }
 

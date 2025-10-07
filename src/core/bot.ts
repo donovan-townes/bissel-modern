@@ -8,16 +8,19 @@ import {
   MessageFlags
   } from "discord.js";
 
-import fs from 'node:fs/promises'
+import * as fsSync from 'node:fs';
 import path from 'node:path'
-import {  pathToFileURL } from "node:url"
+import {  pathToFileURL, fileURLToPath } from "node:url"
 
 
 import { CONFIG } from '../config/resolved.js';
 import { initDb } from '../db/index.js';
 
 import * as retire from '../commands/retire.js';
+import { t } from '../lib/i18n.js';
 
+
+// figure out if we're executing from dist or src
 
 // commmand-registry
 type CommandModule = {
@@ -27,28 +30,28 @@ type CommandModule = {
 
 const commands = new Map<string, CommandModule>();
 
-
-async function findCommandFiles(dir: string): Promise<string[]> {
-  const out: string[] = [];
-  const entries = await fs.readdir(dir, { withFileTypes: true });
-  for (const e of entries) {
-    const p = path.join(dir, e.name);
-    if (e.isDirectory()) out.push(...(await findCommandFiles(p)));
-    else if (e.isFile() && /\.ts$/.test(e.name) && !/\.d\.ts$/.test(e.name)) out.push(p);
-  }
-  return out;
-}
-
+// dynamically load commands from the commands directory
 async function loadCommands() {
-  const commandsDir = path.resolve("src/commands");
-  const files = await findCommandFiles(commandsDir);
-  console.log("Command files found:", files.length, files);
+  // determine if we're running from src/ or dist/
+  const here = fileURLToPath(new URL('.', import.meta.url)); 
+  const isBuilt = here.includes(`${path.sep}dist${path.sep}`);
+  const commandsDir = path.resolve(here, '../commands');     
+  const ext = isBuilt ? '.js' : '.ts';
+
+  console.log(`Loading commands from ${commandsDir} (built=${isBuilt})`);
+
+  const files = fsSync
+    .readdirSync(commandsDir)
+    .filter(f => f.endsWith(ext) && !f.endsWith('.d.ts') && !f.endsWith('.map'));
+
+  console.log(`Command files found (${ext}):`, files.map(f => path.join(commandsDir, f)));
 
   for (const f of files) {
     try {
-      const mod: CommandModule = await import(pathToFileURL(f).href);
+      const full = path.join(commandsDir, f);                 // ✅ join directory + filename
+      const mod: CommandModule = await import(pathToFileURL(full).href);
       if (!mod?.data?.name) {
-        console.warn(`⚠️  Skipping ${f}: no export 'data' with a name`);
+        console.warn(`⚠️  Skipping ${full}: no export 'data' with a name`);
         continue;
       }
       commands.set(mod.data.name, mod);
@@ -78,7 +81,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
   if (interaction.isChatInputCommand()) {
     const mod = commands.get(interaction.commandName);
     if (!mod?.execute) {
-      const msg = "Command not found."; // or i can create a custom in errors.commands
+      const msg = t('errors.generic') || "Command not found."; // should never happen
       if (interaction.deferred || interaction.replied) {
         await interaction.followUp({ content: msg, flags: MessageFlags.Ephemeral })
       } else {
@@ -90,7 +93,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       await mod.execute(interaction)
     } catch (err) {
       console.error(`[/${interaction.commandName}]`, err);
-      const msg = "Something broke" // t(generic error) could work here
+      const msg = t('errors.generic') || "An error occurred while executing the command."; 
       if (interaction.deferred || interaction.replied) {
         await interaction.followUp({ content: msg, flags: MessageFlags.Ephemeral })
       } else {
@@ -107,7 +110,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
         await retire.handleModal(interaction);
       } catch (err) {
         console.error('[Retire Modal]', err);
-        const msg = "Something broke while processing the retirement.";
+        const msg = t('errors.generic') || "An error occurred while processing the modal.";
         if (interaction.deferred || interaction.replied) {
           await interaction.followUp({ content: msg, flags: MessageFlags.Ephemeral });
         } else {

@@ -2,7 +2,7 @@
 import { getDb } from "../db/index.js";
 import type { LfgEntry } from "../domain/lfg.js";
 
-export async function getLfgEntry(userId: string, guildId: string): Promise<LfgEntry | null> {
+export async function getLfgEntry(userId: string): Promise<LfgEntry | null> {
   const db = await getDb();
   const row = await db.get<LfgEntry>(`SELECT * FROM lfg_status WHERE userId = ?`, userId);
   return row ?? null;

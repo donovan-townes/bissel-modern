@@ -2,9 +2,57 @@
   "_comment": "Common strings used in multiple places, including command descriptions and responses. Edit this file to change them globally. Do not add command-specific strings here.",
   "brand.guildMember": "Guild Member",
   "brand.bot": "Quil",
-  "welcome": {
-    "title": "Welcome to the Adventurers Guild of Remnant, {name}!",
-    "description": "We're thrilled to have you join our community of adventurers. As a new member, you start at Level 3 with 900 XP and 80 GP. Use your skills wisely and embark on quests to earn more rewards! 🪶",
-    "footer": "Happy adventuring! May your quests be successful and your rewards plentiful. 🪶"
-  }
+  "brand.botDescription": "The guild's snarky scribe and resource tracker.",
+  "brand.botShortDescription": "Snarky scribe and resource tracker.",
+  "brand.botLongDescription": "I keep track of your gold and resources, with a dash of sarcasm for flavor. Use me wisely, adventurer.",
+  "common": {
+    "notInResourceChannel": [
+      "🪶 Wrong parchment. This belongs in the Resource channel.",
+      "🪶 My ink only flows in the Resource channel. Try again there.",
+      "🪶 Let’s keep the ledger tidy — use the Resource channel for this.",
+      "🪶 Misfiled. Take this to the Resource channel, please.",
+      "🪶 The ledger isn’t portable. Head to the Resource channel.",
+      "🪶 This page isn’t for transactions. Resource channel, if you would.",
+      "🪶 I refuse to blot the margins here. Resource channel only.",
+      "🪶 Proper filings go in the Resource channel. I don’t make the rules (I do).",
+      "🪶 Wrong desk. Resource channel is the counter you want.",
+      "🪶 Transactions are recorded in the Resource channel, not here.",
+      "🪶 Neat columns live in the Resource channel. Shoo.",
+      "🪶 Take it to the Resource channel before the ink sours."
+    ],
+    "notInChannel": [
+      "🪶 Wrong parchment. This belongs in {channel}.",
+      "🪶 My ink only flows in {channel}. Try again there.",
+      "🪶 Let’s keep the ledger tidy — use {channel} for this.",
+      "🪶 Misfiled. Take this to {channel}, please.",
+      "🪶 The ledger isn’t portable. Head to {channel}.",
+      "🪶 This page isn’t for transactions. {channel}, if you would.",
+      "🪶 I refuse to blot the margins here. {channel} only.",
+      "🪶 Proper filings go in {channel}. I don’t make the rules (I do).",
+      "🪶 Wrong desk. {channel} is the counter you want.",
+      "🪶 Transactions are recorded in {channel}, not here.",
+      "🪶 Neat columns live in {channel}. Shoo.",
+      "🪶 Take it to {channel} before the ink sours."
+    ]
+  },    
+  "errors": {
+        "generic": ["Something went wrong. Please try again later.",
+                    "Well, this is embarrassing. Something broke on my end.",
+                    "I'm having a bit of a malfunction. Please try again later.",
+                    "Oops! It seems I've encountered an error. Please try again later."],
+        "invalid": {
+            "random": [
+                "Speak up, kiddo! I didn't understand a word you said.",
+                "That didn't make a lick of sense.",
+                "Sorry, I don't speak abyssal.",
+                "Perhaps you should try again after the **Feeblemind** has worn off."
+            ]
+        },
+        "permission": {
+            "guild_member_only": "You can only use this if you are a registered Guild Member."
+        },
+        "channel": {
+            "use_specific": "Please use this in {channel}."
+        } 
+        }
 }

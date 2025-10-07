@@ -1,8 +1,8 @@
-// src/commands/guildfund.ts
-import { SlashCommandBuilder, ChatInputCommandInteraction, PermissionFlagsBits, MessageFlags } from 'discord.js';
+import { SlashCommandBuilder, ChatInputCommandInteraction, PermissionFlagsBits } from 'discord.js';
 import { getDb } from '../db/index.js';
 
 import { CONFIG } from '../config/resolved.js';
+import { t } from '../lib/i18n.js';
 
 const FUND_ID = CONFIG.system.fundId;
 
@@ -19,7 +19,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   );
 
   if (!row) {
-    await interaction.reply({ ephemeral: true, content: 'Guild fund not found.' });
+    await interaction.reply({content: t('guildfund.errors.notFound') });
     return;
   }
 
@@ -27,14 +27,13 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   const tp = (row.tp / 2).toFixed(1);
 
   await interaction.reply({
-    flags: MessageFlags.Ephemeral,
     embeds: [{
-      title: row.name ?? 'Adventurers Guild Fund',
+      title: row.name ?? t('guildfund.title'),
       fields: [
         { name: 'GP', value: "💰 " + gp, inline: true },
         { name: 'GT', value: "🎫 " + tp, inline: true },
       ],
-      footer: { text: 'GP is stored as cp (x100) internally' }
+      footer: { text: t('guildfund.footer') }
     }]
   });
 }

@@ -21,6 +21,8 @@ import {
 } from "../domain/rewards.js";
 import { levelForXP, proficiencyFor } from "../domain/xp.js";
 
+import { t } from "../lib/i18n.js";
+
 /* ──────────────────────────────────────────────────────────────────────────────
    DB SHAPES
 ────────────────────────────────────────────────────────────────────────────── */
@@ -152,7 +154,7 @@ export async function execute(ix: ChatInputCommandInteraction) {
     hasAnyRole(member, PERMS[sub].filter((id): id is string => id !== undefined)) || isAdmin(member) || isDevBypass(ix);
 
   if (!allowed) {
-    await ix.reply({ flags: MessageFlags.Ephemeral, content: "You don't have permission to use this." });
+    await ix.reply({ flags: MessageFlags.Ephemeral, content: t("reward.errors.noPermission")});
     return;
   }
 
@@ -187,16 +189,15 @@ async function announceLevelChange(
   newLevel: number,
   diff: number
 ) {
-  const mention = userMention(userId);
-  const msg =
-    diff > 0
-      ? `🎉 ${mention} (**${displayName}**) reached level **${newLevel}**! (Proficiency +${proficiencyFor(newLevel)})`
-      : `↘️ ${mention} (**${displayName}**) dropped to level **${newLevel}**.`;
 
+  const msg = diff > 0
+    ? t("reward.announce.levelUp",   { mention: userMention(userId), display: displayName, level: newLevel, prof: proficiencyFor(newLevel) })
+    : t("reward.announce.levelDown", { mention: userMention(userId), display: displayName, level: newLevel });
   const guild = ix.guild;
   const target =
     (guild && REWARDS_CHANNEL_ID && guild.channels.cache.get(REWARDS_CHANNEL_ID)) ||
     ix.channel;
+
   // @ts-expect-error narrowing omitted
   await target?.send(msg);
 }
@@ -211,11 +212,11 @@ async function handleCustom(ix: ChatInputCommandInteraction) {
   const reason = ix.options.getString("reason") ?? null;
 
   if (!recipients.length) {
-    await ix.reply({ flags: MessageFlags.Ephemeral, content: "Add at least one user to reward." });
+    await ix.reply({ flags: MessageFlags.Ephemeral, content: t("reward.errors.noRecipients") });
     return;
   }
   if (!tpAuto && xpIn === 0 && gpIn === 0 && tpIn === 0) {
-    await ix.reply({ flags: MessageFlags.Ephemeral, content: "Provide at least one of XP, GP, or GT (or enable GT Auto)." });
+    await ix.reply({ flags: MessageFlags.Ephemeral, content: t("reward.errors.noInputs") });
     return;
   }
 
@@ -224,7 +225,7 @@ async function handleCustom(ix: ChatInputCommandInteraction) {
   for (const u of recipients) {
     const before = await getPlayer(u.id);
     if (!before) {
-      await ix.reply({ flags: MessageFlags.Ephemeral, content: `${u.username} is not in the system and has no recorded XP.` });
+      await ix.reply({ flags: MessageFlags.Ephemeral, content: t("reward.errors.userNotInSystem", { username: u.username }) });
       return;
     }
 
@@ -244,35 +245,35 @@ async function handleCustom(ix: ChatInputCommandInteraction) {
     if (next.levelsChanged !== 0) {
       await announceLevelChange(ix, u.id, before.name, next.level, next.levelsChanged);
     }
-
-    const usernameLabel = `${u.username}`; // plain text, won’t ping
-    const heading = `${usernameLabel}: ${before.name}`;
-
-    const deltaStr = `+${delta.xp ?? 0} XP, +${fmtGp(delta.cp ?? 0)} GP, +${tpUnits} GT`;
-    const beforeStr = `XP ${before.xp.toLocaleString()} · L${level} · GP ${fmtGp(before.cp)} · GT ${before.tp}`;
-    const afterStr  = `XP ${next.xp.toLocaleString()} · L${next.level} · GP ${fmtGp(next.cp)} · GT ${next.tp}`;
+    
+    // Embed
+    // field text
+    const heading = t("reward.custom.fieldHeading", { username: u.username, charName: before.name });
+    const deltaStr = t("reward.custom.fmt.delta", { xp: delta.xp ?? 0, gp: fmtGp(delta.cp ?? 0), gt: tpUnits });
+    const beforeStr = t("reward.custom.fmt.before", { xp: before.xp.toLocaleString(), level, gp: fmtGp(before.cp), gt: before.tp });
+    const afterStr  = t("reward.custom.fmt.after",  { xp: next.xp.toLocaleString(),  level: next.level, gp: fmtGp(next.cp), gt: next.tp });
 
     fields.push({
       name: heading,
-      value: `Before: ${beforeStr}\nAfter:  ${afterStr}\nChange: ${deltaStr}`,
+      value: t("reward.custom.fieldBody", { before: beforeStr, after: afterStr, delta: deltaStr })
     });
   }
 
   const mentionList = recipients.map((u) => userMention(u.id)).join(" ");
 
   const embed = new EmbedBuilder()
-    .setTitle("Rewards applied")
+    .setTitle(t("reward.custom.title"))
     .addFields(fields)
-    .setFooter({ text: reason ? `Reason: ${reason}` : "—" });
+    .setFooter({ text: reason ? t("reward.common.footerReason", { reason }) : t("reward.common.footerDash") });
+
 
   // Content pings; embed shows details without pinging in field names
   await ix.reply({
-    content: `Rewards applied to: ${mentionList}`,
+    content: t("reward.custom.contentApplied", { mentions: mentionList }),
     embeds: [embed],
     allowedMentions: { users: recipients.map((u) => u.id) }
   });
 }
-
 
 /* DM: invoker claims bracketed DM reward for self */
 async function handleDm(ix: ChatInputCommandInteraction) {
@@ -282,8 +283,7 @@ async function handleDm(ix: ChatInputCommandInteraction) {
   const before = await getPlayer(u.id);
 
   if (!before) {
-    await ix.reply({ flags: MessageFlags.Ephemeral, content: `You have no recorded XP and cannot claim a DM reward.` });
-    return;
+    return ix.reply({ flags: MessageFlags.Ephemeral, content: t("reward.errors.dmNoRecord") });
   }
 
   const level = levelForXP(before.xp);
@@ -297,13 +297,19 @@ async function handleDm(ix: ChatInputCommandInteraction) {
   }
 
   const embed = new EmbedBuilder()
-    .setTitle("DM Reward")
-    .setDescription(
-      `${before.name} (L${level})\n` +
-      `+${delta.xp ?? 0} XP, +${fmtGp(delta.cp ?? 0)} GP, +${delta.tpUnits ?? 0} GT\n` +
-      `→ XP ${next.xp.toLocaleString()} · L${next.level} · GP ${fmtGp(next.cp)} · GT ${next.tp}`
-    )
-    .setFooter({ text: reason ? `Reason: ${reason}` : "—" });
+    .setTitle(t("reward.dm.title"))
+    .setDescription(t("reward.dm.description", {
+      name: before.name,
+      level,
+      xp: delta.xp ?? 0,
+      gp: fmtGp(delta.cp ?? 0),
+      gt: delta.tpUnits ?? 0,
+      nextXp: next.xp.toLocaleString(),
+      nextLevel: next.level,
+      nextGp: fmtGp(next.cp),
+      nextGt: next.tp
+    }))
+    .setFooter({ text: reason ? t("reward.common.footerReason", { reason }) : t("reward.common.footerDash") });
 
   await ix.reply({embeds: [embed] });
 }
@@ -314,7 +320,7 @@ async function handleStaff(ix: ChatInputCommandInteraction) {
   const reason = ix.options.getString("reason") ?? null;
 
   if (!recipients.length) {
-    await ix.reply({ ephemeral: true, content: "Tag at least one staff member." });
+    await ix.reply({ ephemeral: true, content: t("reward.errors.staffNoRecipients")});
     return;
   }
 
@@ -322,14 +328,11 @@ async function handleStaff(ix: ChatInputCommandInteraction) {
   for (const u of recipients) {
     const before = await getPlayer(u.id);
     if (!before) {
-      await ix.reply({ flags: MessageFlags.Ephemeral, content: `${u.username} is not in the system and has no recorded XP.` });
+      await ix.reply({ flags: MessageFlags.Ephemeral, content: t("reward.errors.userNotInSystem", { username: u.username }) });
       return;
     }
 
-
-
     const level = levelForXP(before.xp);
-
     const delta = computeStaffReward(level);
     const next = applyResourceDeltas(before, delta);
     await saveSnapshot(u.id, { xp: next.xp, level: next.level, cp: next.cp, tp: next.tp, name: before.name });
@@ -338,16 +341,24 @@ async function handleStaff(ix: ChatInputCommandInteraction) {
       await announceLevelChange(ix, u.id, before.name, next.level, next.levelsChanged);
     }
 
-    lines.push(
-      `${before.name} (L${level}): +${delta.xp ?? 0} XP, +${fmtGp(delta.cp ?? 0)} GP, +${delta.tpUnits ?? 0} GT → ` +
-      `XP ${next.xp.toLocaleString()} · L${next.level} · GP ${fmtGp(next.cp)} · GT ${next.tp}`
-    );
+    // per-user line
+    lines.push(t("reward.staff.line", {
+      name: before.name,
+      level,
+      xp: delta.xp ?? 0,
+      gp: fmtGp(delta.cp ?? 0),
+      gt: delta.tpUnits ?? 0,
+      nextXp: next.xp.toLocaleString(),
+      nextLevel: next.level,
+      nextGp: fmtGp(next.cp),
+      nextGt: next.tp
+        }));
   }
 
   const embed = new EmbedBuilder()
-    .setTitle("Staff Rewards")
+    .setTitle(t("reward.staff.title"))
     .setDescription(lines.join("\n"))
-    .setFooter({ text: reason ? `Reason: ${reason}` : "—" });
+    .setFooter({ text: reason ? t("reward.common.footerReason", { reason }) : t("reward.common.footerDash") });
 
   await ix.reply({ embeds: [embed] });
 }

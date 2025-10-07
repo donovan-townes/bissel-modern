@@ -5,6 +5,7 @@ import {
   PermissionFlagsBits,
 } from "discord.js";
 
+import type { APIInteractionGuildMember} from 'discord.js'
 const SUPERUSER_IDS = [
   process.env.SUPERUSER_IDS?.split(",").map((s) => s.trim()) ?? [],
 ].flat();
@@ -13,17 +14,19 @@ const TEST_GUILD_IDS = [
   process.env.TEST_GUILD_IDS?.split(",").map((s) => s.trim()) ?? [],
 ].flat();
 
-export function memberRoleIds(member: GuildMember | any | null): string[] {
+export function memberRoleIds(member: GuildMember | APIInteractionGuildMember | null): string[] {
   if (!member) return [];
   // Full GuildMember
-  if (member.roles?.cache) return [...member.roles.cache.keys()];
+  if ('roles' in member && member.roles && 'cache' in member.roles) {
+    return [...member.roles.cache.keys()];
+  }
   // APIInteractionGuildMember
   if (Array.isArray(member.roles)) return member.roles as string[];
   return [];
 }
 
 export function hasAnyRole(
-  member: GuildMember | any | null,
+  member: GuildMember | APIInteractionGuildMember | null,
   allowed: string[]
 ) {
   if (!allowed?.length) return false;
@@ -31,11 +34,12 @@ export function hasAnyRole(
   return allowed.some((rid) => have.has(rid));
 }
 
-export function isAdmin(member: GuildMember | any | null): boolean {
+export function isAdmin(member: GuildMember | APIInteractionGuildMember | null): boolean {
   try {
     return !!(
       member &&
       "permissions" in member &&
+      typeof member.permissions === 'object' &&
       member.permissions?.has?.(PermissionFlagsBits.Administrator)
     );
   } catch {
@@ -54,7 +58,7 @@ export function isDevBypass(ix: ChatInputCommandInteraction) {
 
 export function canBypass(
   ix: ChatInputCommandInteraction,
-  member: GuildMember | any | null,
+  member: GuildMember | APIInteractionGuildMember | null,
   allowed: string[]
 ) {
   return hasAnyRole(member, allowed) || isAdmin(member) || isDevBypass(ix);

@@ -1,5 +1,44 @@
 {
-  "toggled.on": "{user} is now **Available to DM**.",
-  "toggled.off": "{user} is **no longer** available to DM.",
-  "list.title": "__Available to DM__"
+  "dm": {
+    "guildOnly": [
+      "🪶 This quill only scribbles in servers, not DMs.",
+      "🪶 Server only. My ledger doesn’t travel by private courier.",
+      "🪶 Not here. Try me in a server where the records belong."
+    ],
+    "roleMissing": [
+      "🪶 I can’t find the DM role **{role}**. Create it first, then we’ll ink the roster.",
+      "🪶 Role missing: **{role}**. No role, no tidy list.",
+      "🪶 The DM role **{role}** doesn’t exist. Please file it into existence."
+    ],
+    "list": {
+      "title": [
+        "__Available DMs__",
+        "Quil’s Roster: DMs on Deck",
+        "DM Ledger — Current Volunteers"
+      ],
+      "empty": [
+        "Sorry, kiddo. Sometimes the internet is like real life and no one wants to DM.",
+        "No one’s flagged as available. The quill waits… impatiently.",
+        "Blank page. No DMs listed at the moment.",
+        "Roster’s quiet. Try again later or bribe someone with snacks."
+      ]
+    },
+    "toggle": {
+      "notAllowed": [
+        "🪶 You don’t have permission to toggle DM availability.",
+        "🪶 That switch isn’t for you. Ask Staff or a GM.",
+        "🪶 Closed drawer. Only Staff/GMs can flip this one."
+      ],
+      "enabled": [
+        "{user} is now available to DM. I’ve noted it neatly.",
+        "{user} flagged as **Available to DM**. The ledger approves.",
+        "Marked {user} as available. May their prep be short and their players punctual."
+      ],
+      "disabled": [
+        "{user} is no longer available to DM. Ink crossed through—politely.",
+        "Removed **Available to DM** from {user}. Back to lurking, then.",
+        "Unmarked {user}. Their page returns to the calm margins."
+      ]
+    }
+  }
 }

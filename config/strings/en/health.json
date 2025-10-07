@@ -1,0 +1,26 @@
+{
+    "health": {
+        "heal": [
+            "❤️ {amount} HP restored. The quill glows with healing magic.",
+            "❤️ +{amount} HP. Scribbled in with a flourish of restorative ink.",
+            "❤️ {amount} HP healed. My quill approves of your vitality.",
+            "❤️ You feel better! {amount} HP back in the ledger.",
+            "❤️ {amount} HP recovered. The ink sparkles with health."
+        ],
+        "damage": [
+            "💔 -{amount} HP. Noted with a dramatic flourish.",
+            "💔 You took {amount} damage. The quill winces sympathetically.",
+            "💔 {amount} HP lost. My ink darkens with your misfortune.",
+            "💔 Ouch! {amount} HP deducted. The ledger sighs.",
+            "💔 {amount} HP down. I’ll make a note to send you a get-well card."
+        ],
+        "set": [
+            "🪶 HP set to {amount}. The quill adjusts its feathers accordingly.",
+            "🪶 Health updated: {amount} HP. I’ll try not to judge your lifestyle choices.",
+            "🪶 Your HP is now {amount}. The ink flows smoothly over this change.",
+            "🪶 Adjusted HP to {amount}. The ledger looks more balanced already.",
+            "🪶 HP changed to {amount}. My quill feels lighter already."
+        ]
+
+    }
+}

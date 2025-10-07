@@ -1,21 +1,112 @@
 {
     "lfg": {
-        "error.generic": "I sharted all over your file and can't add you to LFG.",
-        "empty.pbp": "Sorry, kid. Folks like their live games.",
-        "empty.low": "Weird. Need more meat for the grinder. Invite some friends!",
-        "empty.mid": "Too busy FTBing to LFG. Tell 'em to get a life and play D&D with you!",
-        "empty.high": "Apparently they've all been annihilated by spheres of varying sizes. Shame.",
-        "empty.epic": "Sorry, bub. Looks like they're already being space pirates on the Astral Plane.",
-        "added": "{user} is LFG for a {tierLabel} game.",
-        "removed.all": "{user} is no longer LFG.",
-        "removed.tier": "{user} is no longer LFG for a {tierLabel} game.",
-        "list.title": "__Looking For Group__",
-        "list.pbp_title": "**PBP PLIX**",
-        "list.low_title": "**Low Tier** (Levels 2-4)",
-        "list.mid_title": "**Mid Tier** (Levels 5-10)",
-        "list.high_title": "**High Tier** (Levels 11-16)",
-        "list.epic_title": "**Epic Tier** (Levels 17+)",
-        "wait.days": ": {days} DAY{plural} LFG"
-        }
+        "errors": {
+            "unknownTier": [
+                "🪶 I don't recognize that tier. Try low, mid, high, epic, pbp, or auto.",
+                "🪶 Unknown tier. The ledger prefers real categories.",
+                "🪶 That tier isn't in my index. Choose a listed option."
+            ],
+            "couldNotDetermineLevel": [
+                "🪶 I couldn’t determine your level from the records. Have you run `/initiate` yet?",
+                "🪶 No level on file. Initiate your character before using auto tier.",
+                "🪶 The ledger is blank for your level. Try `/initiate` first."
+            ],
+            "alreadyInTier": [
+                "🪶 You’re already LFG in **{tier}**.",
+                "🪶 **{tier}** is already active for you.",
+                "🪶 Duplicate filing: **{tier}** is on."
+            ],
+            "notOnBoard": [
+                "🪶 You’re not currently on the LFG board.",
+                "🪶 No entry found for you on the LFG board.",
+                "🪶 The board has no listing for you."
+            ],
+            "notInTier": [
+                "🪶 You’re not LFG in **{tier}**.",
+                "🪶 No **{tier}** listing to remove.",
+                "🪶 You weren’t marked for **{tier}**."
+            ],
+            "notAllowed": [
+                "🪶 You don’t have permission to use this.",
+                "🪶 Closed drawer. You lack access for that action.",
+                "🪶 That’s a staff-only function."
+            ],
+            "useRemoveAllHint": [
+                "🪶 To clear everything, use `/lfg remove tier:all`.",
+                "🪶 For a clean slate, run `/lfg remove tier:all`.",
+                "🪶 Wipe all tiers with `/lfg remove tier:all`."
+            ]
+            },
+        "toggle": {
+            "added": [
+            "Added **{tierUpper}**. You are now LFG in: {activeList}.",
+            "Marked **{tierUpper}**. Active tiers: {activeList}.",
+            "Enabled **{tierUpper}**. Current LFG: {activeList}."
+            ],
+            "removed": [
+            "Removed **{tierUpper}**. You are now LFG in: {activeList}.",
+            "Unmarked **{tierUpper}**. Active tiers: {activeList}.",
+            "Disabled **{tierUpper}**. Current LFG: {activeList}."
+            ],
+            "noneList": "none"
+        },
+        "add": {
+            "success": [
+            "**{display}** added to **{tier}**. ✅",
+            "Recorded: **{display}** is LFG in **{tier}**. ✅",
+            "Filed **{display}** under **{tier}**. ✅"
+            ]
+        },
+        "remove": {
+            "allSuccess": [
+            "Removed all tiers. ❌",
+            "Cleared your LFG listings. ❌",
+            "All tiers wiped from the ledger. ❌"
+            ],
+            "oneSuccess": [
+            "Removed user **{display}** from **{tier}**. ❌",
+            "Unlisted **{display}** from **{tier}**. ❌",
+            "Cleared **{tier}** for **{display}**. ❌"
+            ]
+        },
+        "status": {
+            "title": [
+            "Your LFG Status",
+            "LFG — Current Listing",
+            "Quil’s Note: Your LFG"
+            ],
+            "fields": {
+            "tiers": "Tiers",
+            "waiting": "Waiting",
+            "waitingLessThanDay": "Less than a day"
+            }
+        },
 
+        "list": {
+            "posted": [
+            "🪶 LFG board updated.",
+            "🪶 Board refreshed.",
+            "🪶 New board posted."
+            ],
+            "notAllowedToPost": [
+            "🪶 You’re not allowed to post the sticky board.",
+            "🪶 Board posting is limited to moderators/admins.",
+            "🪶 That posting stamp is for staff."
+            ]
+        },
+        "purge": {
+            "resultSome": [
+            "Purged **{count}** LFG entr{suffix} older than **{days}** day(s) ({scope}).",
+            "Removed **{count}** entr{suffix} older than **{days}** day(s) ({scope}).",
+            "Archive complete: **{count}** entr{suffix} cleared (> **{days}** days, {scope})."
+            ],
+            "resultNone": [
+            "There are no entries older than **{days}** day(s) ({scope}).",
+            "Nothing to purge (> **{days}** days, {scope}).",
+            "🪶 Clean ledger — no entries exceed **{days}** day(s) ({scope})."
+            ],
+            "suffixOne": "y",
+            "suffixMany": "ies"
+        }
+    }
 }

@@ -12,6 +12,7 @@ import {
 import { getDb } from '../db/index.js';
 
 import { CONFIG } from '../config/resolved.js';
+import { t } from '../lib/i18n.js';
 
 export const data = new SlashCommandBuilder()
   .setName('retire')
@@ -48,7 +49,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
   const confirmInput = new TextInputBuilder()
     .setCustomId('confirm_text')
-    .setLabel('Type RETIRE to confirm')
+    .setLabel(t('retire.confirmLabel'))
     .setPlaceholder('RETIRE')
     .setRequired(true)
     .setStyle(TextInputStyle.Short);
@@ -65,7 +66,7 @@ export async function handleModal(interaction: ModalSubmitInteraction) {
 
   const input = interaction.fields.getTextInputValue('confirm_text');
   if (input !== 'RETIRE') {
-    return interaction.reply({ content: 'Retirement cancelled — confirmation text must be RETIRE.', flags: MessageFlags.Ephemeral });
+    return interaction.reply({ content: t('retire.cancelled'), flags: MessageFlags.Ephemeral });
   }
 
   const targetId = interaction.customId.replace('retire-confirm-', '');
@@ -82,7 +83,7 @@ export async function handleModal(interaction: ModalSubmitInteraction) {
 
   if (!row) {
     return interaction.reply({
-      content: 'No active adventurer record found for that user.',
+      content: t('retire.noAdventurer', { name: `<@${targetId}>` }),
       flags: MessageFlags.Ephemeral,
     });
   }
@@ -107,18 +108,18 @@ export async function handleModal(interaction: ModalSubmitInteraction) {
   const note = selfAction ? '' : ` (retired by ${actor})`;
 
   await interaction.reply({
-    content: `**${targetMention}**'s character: **${row.name}** has been retired ${note}. Their record has been removed from the database.`,
+    content: t('retire.userNotice', { name: targetMention }) + note,
     embeds: [{
-        title: `Retired Adventurer: ${row.name}`,
+        title: t('retire.title', { name: row.name ?? 'Unknown' }) ,
+        description: t('retire.description', { name: row.name ?? 'Unknown' }),
         fields: [
-            { name: 'Level', value: row.level?.toString() ?? 'N/A', inline: true },
-            { name: 'XP', value: row.xp?.toString() ?? 'N/A', inline: true },
-            { name: 'GP', value: row.cp !== undefined ? (row.cp / 100).toFixed(2) : 'N/A', inline: true },
-            { name: 'GP', value: row.tp?.toString() ?? 'N/A', inline: true },
+            { name: '⬆️ Level', value: row.level?.toString() ?? 'N/A', inline: true },
+            { name: '💪 XP', value: row.xp?.toString() ?? 'N/A', inline: true },
+            { name: '💰 GP', value: row.cp !== undefined ? (row.cp / 100).toFixed(2) : 'N/A', inline: true },
+            { name: '🎫 GP', value: row.tp?.toString() ?? 'N/A', inline: true },
         ],
-        footer: { text: 'Fair winds and following seas, adventurer! Please store your character sheet safely.' },
+        footer: { text: t('retire.footer') },
         color: 0xFF0000,
     }]
   });
 }
-

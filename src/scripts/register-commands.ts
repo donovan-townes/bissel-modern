@@ -38,10 +38,10 @@ async function findCommandFiles(dir: string): Promise<string[]> {
     return out;
 }
 
-async function loadCommandJSONs(): Promise<any[]> {
+async function loadCommandJSONs(): Promise<object[]> {
     const commandsDir = path.resolve("src/commands");
     const files = await findCommandFiles(commandsDir);
-    const jsons: any[] = [];
+    const jsons: object[] = [];
 
     for (const f of files) {
         const modUrl = pathToFileURL(f).href; // works with tsx
@@ -65,7 +65,7 @@ async function main() {
     const rest = new REST({ version: "10"}).setToken(TOKEN)
 
     async function list() {
-        const global = await rest.get(Routes.applicationCommands(APP_ID!)) as any[];
+        const global = await rest.get(Routes.applicationCommands(APP_ID!)) as { name: string }[];
         console.log("Global commands: ", global.map(c => c.name))
     }
 

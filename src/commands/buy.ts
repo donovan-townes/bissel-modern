@@ -1,12 +1,12 @@
 import {
   SlashCommandBuilder,
   ChatInputCommandInteraction,
-  EmbedBuilder,
   GuildMember,
     MessageFlags,
 } from "discord.js";
 import { CONFIG } from "../config/resolved.js";
 import { getDb } from "../db/index.js";
+import { t } from "../lib/i18n.js";
 
 type PlayerRow = {
   userId: string;
@@ -19,7 +19,6 @@ type PlayerRow = {
 
 const CFG = CONFIG.guild!.config;
 const REWARDS_CHANNEL_ID = CFG.channels?.resourceTracking || null;
-// const DEV_CHANNEL_ID = "1420807995893223496"
 
 // helpers
 const toCp = (gp: number) => Math.round(gp * 100);
@@ -58,13 +57,12 @@ export const data = new SlashCommandBuilder()
 export async function execute(ix: ChatInputCommandInteraction) {
   // Basic permission scaffold (everyone can use; still validates bot perms)
 
-  // Channel guard: only allowed in Resource channel (or test override if you use one)
-
+  // Channel guard: only allowed in Resource channel (or test override)
   if (REWARDS_CHANNEL_ID && ix.channel?.id !== REWARDS_CHANNEL_ID) {
     await ix.reply({
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
       content:
-        "This command can only be used in the Resource channel for tracking.",
+        t('buy.notInResourceChannel'),
     });
     return;
   }
@@ -77,56 +75,60 @@ export async function execute(ix: ChatInputCommandInteraction) {
 
   // sanity checks
   if (!item) {
-    await ix.reply({ ephemeral: true, content: "Please provide an item name." });
+    await ix.reply({ flags: MessageFlags.Ephemeral, content: t('buy.errors.invalidItem') });
     return;
   }
   if (!(amountGp > 0)) {
     await ix.reply({
-      ephemeral: true,
-      content: "Amount must be a positive number greater than 0.",
+      flags: MessageFlags.Ephemeral,
+      content: t('buy.errors.invalidAmount'),
     });
     return;
   }
   // reject more than 2 decimal places (GP precision)
   if (Math.round(amountGp * 100) !== amountGp * 100) {
     await ix.reply({
-      ephemeral: true,
-      content: "Please specify a valid GP amount (max two decimals).",
+      flags: MessageFlags.Ephemeral,
+      content: t('buy.errors.invalidPrecision'),
     });
     return;
   }
 
   const row = await getPlayer(user.id);
-  const displayName = row?.name ?? (member.displayName || user.username);
-
+  
   // Make sure the row exists (keeps behavior graceful for first-time users)
   if (!row) {
-        await ix.reply({
-            flags: MessageFlags.Ephemeral,
-            content:
-                `Hi ${user}, it looks like you don't have a character log yet. Please get initiated and re-run the command to record your sale.`,
-        });
-        return;
+    await ix.reply({
+      flags: MessageFlags.Ephemeral,
+      content: t('buy.errors.noPlayerRecord', { user: user.username }),
+    });
+    return;
   }
-
+  
   const deltaCp = toCp(amountGp);
   await subCp(user.id, deltaCp);
-
+  
   const updated = await getPlayer(user.id);
   const newGp = updated ? toGp(updated.cp) : toGp((row?.cp ?? 0) + deltaCp);
+  
+  // Embed is disabled for now; we can re-enable later if we want it.
+  
+  // const displayName = row?.name ?? (member.displayName || user.username);
+  // const embed = new EmbedBuilder()
+  //   .setTitle("📜 Purchase Recorded")
+  //   .setAuthor({ name: displayName, iconURL: user.displayAvatarURL() })
+  //   .setDescription(
+  //     `**${displayName}** bought **${item}** for **${amountGp.toFixed(
+  //       2
+  //     )} GP**.\n**New GP Total:** ${newGp} GP`
+  //   )
+  //   .setFooter({ text: `Transacted by ${user.tag}` })
+  //   .setTimestamp();
 
-  // Legacy-style public audit line + a clean embed
-  const embed = new EmbedBuilder()
-    .setTitle("📜 Purchase Recorded")
-    .setDescription(
-      `**${displayName}** bought **${item}** for **${amountGp.toFixed(
-        2
-      )} GP**.\n**New GP Total:** ${newGp} GP`
-    )
-    .setFooter({ text: `Transacted by ${user.tag}` })
-    .setTimestamp();
-
-  await ix.reply({ embeds: [embed] });
+  await ix.reply({ 
+    content: t('buy.purchaseSuccess', {item, amount: amountGp.toFixed(2), newGp})
+    // embeds: [embed] });
+  });
 }
 
 export default { data, execute };

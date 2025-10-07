@@ -1,15 +1,15 @@
-import advancement from "../../config/advancement.json" with { type: "json" };
+// import advancement from "../../config/advancement.json" with { type: "json" };
 import rewards from "../../config/rewards.json" with { type: "json" };
 import { bandFor, applyXP } from "./xp.js";
 
 /** Types */
 type RewardsCfg = typeof rewards;
-type AdvancementRow = { level: number; xp: number; proficiency: number };
+// type AdvancementRow = { level: number; xp: number; proficiency: number };
 
 export type RewardMode = "reward" | "dmreward" | "staffreward";
 export type ResourceDelta = { xp?: number; cp?: number; tpUnits?: number };
 
-const ADV = advancement as { levels: AdvancementRow[]; maxLevel: number };
+// const ADV = advancement as { levels: AdvancementRow[]; maxLevel: number };
 const CFG: RewardsCfg = rewards;
 
 /** --- Internals --- */
@@ -38,7 +38,7 @@ function tpUnitsFor(level: number, mode: RewardMode): number {
 
   for (const r of rows) {
     if (r.lt && level < r.lt) return r.units;
-    if ((r as any).else) return r.units;
+    if ('else' in r && r.else) return r.units;
   }
   return 0;
 }

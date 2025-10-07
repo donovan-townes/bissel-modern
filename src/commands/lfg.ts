@@ -31,6 +31,7 @@ import {
 } from "../domain/lfg.js";
 import { getGuildState, setGuildState } from "../domain/guildState.js";
 import { levelForXP } from "../domain/xp.js";
+import { t } from "../lib/i18n.js";
 
 /* ──────────────────────────────────────────────────────────────────────────────
   CONFIG / PERMS
@@ -277,7 +278,7 @@ async function ensureEntry(ix: ChatInputCommandInteraction): Promise<LfgEntry> {
   const fallbackName = userMention(userId);
   const now = Date.now();
 
-  const existing = await getLfgEntry(userId, guildId);
+  const existing = await getLfgEntry(userId);
   if (existing) return existing;
 
   return {
@@ -303,10 +304,13 @@ async function resolveAutoTier(userId: string): Promise<Exclude<LfgTier, "pbp"> 
 
 async function handleToggle(ix: ChatInputCommandInteraction) {
   const tierChoice = parseTier(ix.options.getString("tier"));
-  if (!tierChoice) return ix.reply({ flags: MessageFlags.Ephemeral, content: "Unknown tier." });
+  if (!tierChoice) return ix.reply({ flags: MessageFlags.Ephemeral, content: t('lfg.errors.unknownTier') });
 
   let entry = await ensureEntry(ix);
   const member = await ix.guild!.members.fetch(ix.user.id);
+// Build active list:
+  const active = LFG_ORDER.filter(t => entry[t as LfgTier]).map(t => `\`${t}\``).join(", ");
+  const activeList = active || t("lfg.toggle.noneList");
 
   // Determine target tier
   let tier: LfgTier;
@@ -315,12 +319,12 @@ async function handleToggle(ix: ChatInputCommandInteraction) {
     if (!auto) {
       return ix.reply({
         flags: MessageFlags.Ephemeral,
-        content: "Could not determine your level for auto-tier. Have you run `/initiate` yet?",
+        content: t("lfg.errors.couldNotDetermineLevel"),
       });
     }
     tier = auto;
   } else if (tierChoice === "all") {
-    return ix.reply({ flags: MessageFlags.Ephemeral, content: "Use `/lfg remove tier:all` to clear all." });
+    return ix.reply({ flags: MessageFlags.Ephemeral, content: t("lfg.errors.useRemoveAllHint") });
   } else {
     tier = tierChoice as LfgTier;
   }
@@ -333,14 +337,13 @@ async function handleToggle(ix: ChatInputCommandInteraction) {
   await refreshBoard(ix);
 
   return ix.reply({
-    flags: MessageFlags.Ephemeral,
-    content: `${currentlyOn ? "Removed" : "Added"} **${tier.toUpperCase()}**. You are now LFG in: ${LFG_ORDER.filter(t => entry[t as LfgTier]).map(t => `\`${t}\``).join(", ") || "none"}.`,
+    content: t(currentlyOn ? "lfg.toggle.removed" : "lfg.toggle.added", { tierUpper: tier.toUpperCase(), activeList }),
   });
 }
 
 async function handleAdd(ix: ChatInputCommandInteraction) {
   const tierChoice = parseTier(ix.options.getString("tier"));
-  if (!tierChoice) return ix.reply({ flags: MessageFlags.Ephemeral, content: "Unknown tier." });
+  if (!tierChoice) return ix.reply({ flags: MessageFlags.Ephemeral, content: t('lfg.errors.unknownTier') });
 
   let entry = await ensureEntry(ix);
   const member = await ix.guild!.members.fetch(ix.user.id);
@@ -349,17 +352,17 @@ async function handleAdd(ix: ChatInputCommandInteraction) {
   if (tierChoice === "auto") {
     const auto = await resolveAutoTier(ix.user.id);
     if (!auto) {
-      return ix.reply({ flags: MessageFlags.Ephemeral, content: "Could not determine your level. Have you run `/initiate` yet?" });
+      return ix.reply({ flags: MessageFlags.Ephemeral, content: t("lfg.errors.couldNotDetermineLevel") });
     }
     tier = auto;
   } else if (tierChoice === "all") {
-    return ix.reply({ flags: MessageFlags.Ephemeral, content: "Use `/lfg remove tier:all` to clear all." });
+    return ix.reply({ flags: MessageFlags.Ephemeral, content: t("lfg.errors.useRemoveAllHint") });
   } else {
     tier = tierChoice as LfgTier;
   }
 
   if (entry[tier]) {
-    return ix.reply({ flags: MessageFlags.Ephemeral, content: `You are already LFG in **${tier}**.` });
+    return ix.reply({ flags: MessageFlags.Ephemeral, content: t("lfg.errors.alreadyInTier", { tier }) });
   }
 
   entry = setTier(entry, tier, true, Date.now());
@@ -367,15 +370,15 @@ async function handleAdd(ix: ChatInputCommandInteraction) {
   await syncRolesFor(member, entry);
   await refreshBoard(ix);
 
-  return ix.reply({ flags: MessageFlags.Ephemeral, content: `Added **${tier}**. ✅` });
+  return ix.reply({content: t("lfg.add.success", { display: member.displayName, tier }) });
 }
 
 async function handleRemove(ix: ChatInputCommandInteraction) {
   const tierChoice = parseTier(ix.options.getString("tier"));
-  if (!tierChoice) return ix.reply({ flags: MessageFlags.Ephemeral, content: "Unknown tier." });
+  if (!tierChoice) return ix.reply({ flags: MessageFlags.Ephemeral, content: t('lfg.errors.unknownTier') });
 
-  let entry = await getLfgEntry(ix.user.id, ix.guild!.id);
-  if (!entry) return ix.reply({ flags: MessageFlags.Ephemeral, content: "You are not on the LFG board." });
+  let entry = await getLfgEntry(ix.user.id);
+  if (!entry) return ix.reply({ flags: MessageFlags.Ephemeral, content: t("lfg.errors.notOnBoard") });
 
   const member = await ix.guild!.members.fetch(ix.user.id);
 
@@ -386,12 +389,12 @@ async function handleRemove(ix: ChatInputCommandInteraction) {
     // if truly nothing left, remove entry entirely
     if (!anyTierOn(entry)) await deleteLfgEntry(ix.user.id);
     await refreshBoard(ix);
-    return ix.reply({ flags: MessageFlags.Ephemeral, content: "Removed all tiers. ❌" });
+    return ix.reply({content: t("lfg.remove.allSuccess") });
   }
 
   const tier = tierChoice as LfgTier;
   if (!entry[tier]) {
-    return ix.reply({ flags: MessageFlags.Ephemeral, content: `You are not LFG in **${tier}**.` });
+    return ix.reply({ flags: MessageFlags.Ephemeral, content: t("lfg.errors.notInTier", { tier }) });
   }
 
   entry = setTier(entry, tier, false, Date.now());
@@ -400,21 +403,21 @@ async function handleRemove(ix: ChatInputCommandInteraction) {
   if (!anyTierOn(entry)) await deleteLfgEntry(ix.user.id);
   await refreshBoard(ix);
 
-  return ix.reply({ flags: MessageFlags.Ephemeral, content: `Removed **${tier}**.` });
+  return ix.reply({content: t("lfg.remove.oneSuccess", { display: member.displayName, tier }) });
 }
 
 async function handleStatus(ix: ChatInputCommandInteraction) {
-  const entry = await getLfgEntry(ix.user.id, ix.guild!.id);
+  const entry = await getLfgEntry(ix.user.id);
   if (!entry || !anyTierOn(entry)) {
-    return ix.reply({ flags: MessageFlags.Ephemeral, content: "You are not currently on the LFG board." });
+    return ix.reply({ flags: MessageFlags.Ephemeral, content: t("lfg.errors.notOnBoard") });
   }
   const ageDays = Math.max(0, Math.floor((Date.now() - entry.startedAt) / (24 * 60 * 60 * 1000)));
   const tiers = LFG_ORDER.filter((t) => !!entry[t as keyof LfgEntry]);
   const embed = new EmbedBuilder()
-    .setTitle("Your LFG status")
+    .setTitle(t("lfg.status.title"))
     .addFields(
-      { name: "Tiers", value: tiers.map((t) => `\`${t}\``).join(", ") || "—", inline: true },
-      { name: "Waiting", value: ageDays ? `${ageDays} day${ageDays > 1 ? "s" : ""}` : "Less than a day", inline: true }
+      { name: t("lfg.status.fields.tiers"), value: tiers.map((t) => `\`${t}\``).join(", ") || "—", inline: true },
+      { name: t("lfg.status.fields.waiting"), value: ageDays ? `${ageDays} day${ageDays > 1 ? "s" : ""}` : t("lfg.status.fields.waitingLessThanDay"), inline: true }
     )
     .setColor(0x4ea8de);
 
@@ -427,16 +430,20 @@ async function handleList(ix: ChatInputCommandInteraction) {
   const embed = buildLfgEmbed(aggregateList(entries));
 
   // Always show a preview ephemerally
-  await ix.reply({ flags: MessageFlags.Ephemeral, embeds: [embed] });
+  await ix.reply({embeds: [embed] });
 
   if (!post) return;
 
   // Gate posting to mods/admins
   const member = ix.member as GuildMember | null;
   const allowed = hasAnyRole(member, PERMS.postBoard.filter(Boolean) as string[]) || isAdmin(member);
-  if (!allowed) return;
+  if (!allowed) {
+    return ix.followUp({ flags: MessageFlags.Ephemeral, content: t("lfg.list.cannotPost") });
+  }
+
 
   await refreshBoard(ix, "manual-post");
+  await ix.followUp({ content: t("lfg.list.posted") });
 }
 
 async function handlePurge(ix: ChatInputCommandInteraction) {
@@ -446,7 +453,7 @@ async function handlePurge(ix: ChatInputCommandInteraction) {
   const member = ix.member as GuildMember | null;
   const allowed = hasAnyRole(member, PERMS.purge.filter(Boolean) as string[]) || isAdmin(member);
   if (!allowed) {
-    return ix.reply({ flags: MessageFlags.Ephemeral, content: "You don’t have permission to use this." });
+    return ix.reply({ flags: MessageFlags.Ephemeral, content: t("lfg.errors.notAllowed") });
   }
 
   const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
@@ -466,10 +473,14 @@ async function handlePurge(ix: ChatInputCommandInteraction) {
 
   await refreshBoard(ix, "purge");
   await ix.reply({
-    flags: MessageFlags.Ephemeral,
     content: removedIds.length
-      ? `Purged **${removedIds.length}** LFG entr${removedIds.length > 1 ? "ies" : "y"} older than ${days} day(s) (${scope}).`
-      : `No entries older than ${days} day(s) (${scope}).`,
+      ? t("lfg.purge.resultSome", {
+          count: removedIds.length,
+          days,
+          scope,
+          suffix: t(removedIds.length === 1 ? "lfg.purge.suffixOne" : "lfg.purge.suffixMany")
+        })
+      : t("lfg.purge.resultNone", { days, scope })
   });
 }
 

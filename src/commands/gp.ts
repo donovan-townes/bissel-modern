@@ -4,10 +4,12 @@ import {
   EmbedBuilder,
   GuildMember,
   MessageFlags,
+  userMention
 } from "discord.js";
 import { CONFIG } from "../config/resolved.js";
 import { validateCommandPermissions } from "../config/validaters.js";
 import { getDb } from "../db/index.js";
+import { t } from "../lib/i18n.js";
 
 // --- Types / DB ---
 type PlayerRow = {
@@ -152,10 +154,20 @@ export async function execute(ix: ChatInputCommandInteraction) {
   const sub = ix.options.getSubcommand();
   const member = ix.member as GuildMember | null;
 
-  // Validate permissions using the reusable function
+    // Permission guard
   if (!validateCommandPermissions(ix, member, PERMS)) {
-    return; // validateCommandPermissions already sent the reply
+    return; 
   }
+  // Channel guard: only allowed in Resource channel (or test override if you use one)
+  if (REWARDS_CHANNEL_ID && ix.channel?.id !== REWARDS_CHANNEL_ID) {
+    await ix.reply({
+      flags: MessageFlags.Ephemeral,
+      content:
+        t('common.notInResourceChannel'),
+    });
+    return;
+  }
+
 
   if (sub === "show") {
     const user = ix.options.getUser("user") ?? ix.user;
@@ -163,9 +175,10 @@ export async function execute(ix: ChatInputCommandInteraction) {
     if (!row) {
       return ix.reply({
         flags: MessageFlags.Ephemeral,
-        content: `Hi ${user}, it looks like you don't have a character log yet. Please get initiated and re-run the command to view GP.`,
+        content: t('gp.errors.notInSystem', { username: user.displayName }),
       });
     }
+
 
     const embed = new EmbedBuilder()
       .setAuthor({ name: `${row.name} — Wallet` })
@@ -173,7 +186,7 @@ export async function execute(ix: ChatInputCommandInteraction) {
         { name: "GP", value: ` 💰 **${toGpString(row.cp)}**`, inline: false },
         { name: "CP (stored)", value: "🪙 " + row.cp.toString(), inline: false }
       );
-    return ix.reply({ flags: MessageFlags.Ephemeral, embeds: [embed] });
+    return ix.reply({embeds: [embed] });
   }
 
   // mutating subcommands
@@ -184,22 +197,29 @@ export async function execute(ix: ChatInputCommandInteraction) {
   if (!row) {
     return ix.reply({
       flags: MessageFlags.Ephemeral,
-      content: `Hi ${user}, it looks like there is no character log yet. Please initiate the character and re-run the command to view GP.`,
+      content: t('gp.errors.notInSystem', { username: user.username }),
     });
   }
 
   if (sub === "add") {
     const amtGp = ix.options.getNumber("amount", true);
     if (amtGp <= 0)
-      return ix.reply({ ephemeral: true, content: "Amount must be > 0." });
+      return ix.reply({ flags: MessageFlags.Ephemeral, content: t('gp.errors.invalidAmount') });
 
     const delta = toCp(amtGp);
     const next = Math.max(0, row.cp + delta);
     await upsertPlayerCP(user.id, next, row.name);
+
     await ix.reply({
-      ephemeral: true,
-      content: `OK. ${row.name}: **+${amtGp} GP** → ${toGpString(next)} GP`,
+      content: t('gp.add.ok', {
+        mention: userMention(user.id),
+        name: row.name,
+        amt: amtGp.toFixed(2),
+        newGp: toGpString(next),
+        reasonLine: reason ? t('gp.reasonFmt', { reason }) : "",
+      }),
     });
+
     return;
   }
 
@@ -209,10 +229,18 @@ export async function execute(ix: ChatInputCommandInteraction) {
     const next = Math.max(0, row.cp + delta);
     await upsertPlayerCP(user.id, next, row.name);
     const sign = delta >= 0 ? "+" : "-";
+
     await ix.reply({
-      ephemeral: true,
-      content: `OK. ${row.name}: **${sign}${Math.abs(amtGp)} GP** → ${toGpString(next)} GP`,
+      content: t('gp.adjust.ok', {
+        mention: userMention(user.id),
+        name: row.name,
+        sign: sign,
+        absAmt: Math.abs(amtGp).toFixed(2),
+        newGp: toGpString(next),
+        reasonLine: reason ? t('gp.reasonFmt', { reason }) : "",
+      }),
     });
+  
     return;
   }
 
@@ -221,9 +249,15 @@ export async function execute(ix: ChatInputCommandInteraction) {
     const next = toCp(amtGp);
     await upsertPlayerCP(user.id, next, row.name);
     await ix.reply({
-      ephemeral: true,
-      content: `OK. ${row.name}: set to **${amtGp.toFixed(2)} GP**`,
+      content: t('gp.set.ok', {
+        mention: userMention(user.id),
+        name: row.name,
+        amt: amtGp.toFixed(2),
+        newGp: toGpString(next),
+        reasonLine: reason ? t('gp.reasonFmt', { reason }) : "",
+      }),
     });
+
     return;
   }
 }

@@ -1,8 +1,8 @@
 {
-  "name": "bissel-modern",
+  "name": "quil-remnant-bot",
   "version": "1.0.0",
-  "description": "> A modern rewrite of the Bissel Discord bot for Remnant D&D Discord Server.  \r > Rebuilt on the latest Discord.js with updated configs, typed personality strings, and long-term maintainability in mind.",
-  "main": "src/client.ts",
+  "description": "> A modern rewrite of the previous bot for Remnant D&D Discord Server.  \r > Rebuilt on the latest Discord.js with updated configs, typed personality strings, and long-term maintainability in mind.",
+  "main": "src/core/bot.ts",
   "type": "module",
   "directories": {
     "doc": "docs"
@@ -17,7 +17,7 @@
     "deploy:clear:global": "tsx src/scripts/register-commands.ts --clear-global",
     "deploy:global": "cross-env DEV_GUILD_ID= tsx src/scripts/register-commands.ts",
     "prestart": "npm run build",
-    "start": "node dist/core/bot.js",
+    "start": "node --enable-source-maps dist/src/core/bot.js",
     "db:init": "tsx src/scripts/init.db.ts",
     "db:backup": "tsx src/scripts/backup.ts",
     "db:wipe": "tsx src/scripts/wipe.ts",
@@ -25,9 +25,9 @@
     "db:reseed:me": "npm run db:wipe && npm run db:seed:me",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
+  "keywords": ["discord", "bot", "dnd", "d&d", "rpg", "remnant", "dungeon", "adventure", "dice", "tabletop"],
   "author": "Donovan Townes",
-  "license": "ISC",
+  "license": "MIT License",
   "dependencies": {
     "better-sqlite3": "^12.4.1",
     "discord.js": "^14.22.1",

@@ -4,11 +4,13 @@ import {
   EmbedBuilder,
   GuildMember,
   MessageFlags,
+  userMention,
 } from "discord.js";
 import { CONFIG } from "../config/resolved.js";
 import { getDb } from "../db/index.js";
 
 import { validateCommandPermissions } from "../config/validaters.js";
+import { t } from "../lib/i18n.js";
 
 // Note that GT is actually TP (Training Points) in the database. Changed via guild decision.
 type PlayerRow = { userId: string; name: string; xp: number; level: number; cp: number; tp: number };
@@ -45,14 +47,12 @@ async function upsertPlayerTP(userId: string, nextTPUnits: number, displayName?:
 const CFG = CONFIG.guild!.config;
 const ROLE = CFG.roles;
 
-
 const PERMS = {
   add: [ROLE.dm.id, ROLE.moderator.id, ROLE.admin.id].filter((id): id is string => id !== undefined),
   adjust: [ROLE.moderator.id, ROLE.admin.id].filter((id): id is string => id !== undefined),
   set: [ROLE.admin.id].filter((id): id is string => id !== undefined),
   show: [] as string[], // empty => everyone
 };
-
 
 export const data = new SlashCommandBuilder()
   .setName("gt")
@@ -96,17 +96,17 @@ export async function execute(ix: ChatInputCommandInteraction) {
     if (!row) {
       return ix.reply({
         flags: MessageFlags.Ephemeral,
-        content: `Hi ${user}, it looks like you don't have a character log yet. Please get initiated and re-run the command to view GT.`,
-      });
+        content: t('gt.notInSystem', { username: user.displayName }),
+      });  
     }
-  
+
     const embed = new EmbedBuilder()
       .setAuthor({ name: `${row.name} — Golden Tickets` })
       .addFields(
         { name: "GT", value: `**${row.tp}**`, inline: true },
         { name: "Stored", value: `${row.tp}`, inline: true },
       );
-    return ix.reply({ ephemeral: true, embeds: [embed] });
+    return ix.reply({embeds: [embed] });
   }
 
   const user = ix.options.getUser("user", true);
@@ -115,19 +115,27 @@ export async function execute(ix: ChatInputCommandInteraction) {
   if (!row) {
     return ix.reply({
       flags: MessageFlags.Ephemeral,
-      content: `Hi ${user}, it looks like there is no character log yet. Please initiate the character and re-run the command to view GT.`,
+      content: t('gt.notInSystem', { username: user.displayName }),
     });
   }
   
-
   if (sub === "add") {
     const amt = ix.options.getNumber("amount", true);
     if (amt <= 0) return ix.reply({ ephemeral: true, content: "Amount must be > 0." });
     const deltaUnits = amt;
     const next = Math.max(0, row.tp + deltaUnits);
     await upsertPlayerTP(user.id, next, row.name);
-    return ix.reply({ ephemeral: true, content: `OK. ${row.name}: **+${amt} GT** → ${next} GT` });
-  }
+    // return ix.reply({ ephemeral: true, content: `OK. ${row.name}: **+${amt} GT** → ${next} GT` });
+    return ix.reply({
+      content: t('gt.add.ok', {
+        mention: userMention(user.id),
+        name: row.name,
+        amt: amt.toFixed(2),
+        newGt: next,
+        reasonLine: reason ? t('gt.reasonFmt', { reason }) : "",
+      }),
+    });
+  } 
 
   if (sub === "adjust") {
     const amt = ix.options.getNumber("amount", true);
@@ -135,14 +143,31 @@ export async function execute(ix: ChatInputCommandInteraction) {
     const next = Math.max(0, row.tp + deltaUnits);
     await upsertPlayerTP(user.id, next, row.name);
     const sign = deltaUnits >= 0 ? "+" : "−";
-    return ix.reply({ ephemeral: true, content: `OK. ${row.name}: **${sign}${Math.abs(amt)} GT** → ${next} GT` });
+    return ix.reply({
+      content: t('gt.adjust.ok', {
+        mention: userMention(user.id),
+        name: row.name,
+        sign,
+        absAmt: Math.abs(amt).toFixed(2),
+        newGt: next,
+        reasonLine: reason ? t('gt.reasonFmt', { reason }) : "",
+      }),
+    });
   }
 
   if (sub === "set") {
     const amt = ix.options.getNumber("amount", true);
     const next = amt;
     await upsertPlayerTP(user.id, next, row.name);
-    return ix.reply({ ephemeral: true, content: `OK. ${row.name}: set to **${amt} GT**` });
+    return ix.reply({
+      content: t('gt.set.ok', {
+        mention: userMention(user.id),
+        name: row.name,
+        oldGt: row.tp,
+        newGt: next,
+        reasonLine: reason ? t('gt.reasonFmt', { reason }) : "",
+      }),
+    });
   }
 }
 
