@@ -3,10 +3,22 @@
 # Designed for Windows (PowerShell) scheduled task or manual run.
 
 param(
-    [string]$RepoRoot = (Split-Path -Parent $MyInvocation.MyCommand.Path),
-    [int]$MaxKeep = 30,
-    [switch]$Compress
+    [string]$RepoRoot,
+    [object]$MaxKeep = 30,
+    [System.Management.Automation.SwitchParameter]$Compress
 )
+
+$ErrorActionPreference = 'Stop'
+
+# If RepoRoot wasn't provided, infer it as the parent folder of this script's directory
+if (-not $RepoRoot) {
+    $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $RepoRoot = Split-Path -Parent $scriptDir
+}
+
+$null = $MaxKeep
+# Coerce MaxKeep to an integer safely (handles binding oddities)
+try { $MaxKeep = [int]$MaxKeep } catch { $MaxKeep = 30 }
 
 $DBFile = Join-Path $RepoRoot 'data\remnant.sqlite'
 $BackupDir = Join-Path $RepoRoot 'backups'

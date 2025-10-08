@@ -1,0 +1,15 @@
+[Unit]
+Description=Remnant DB weekly backup
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=quil
+Group=quil
+WorkingDirectory=/srv/bissel-modern
+EnvironmentFile=/srv/bissel-modern/.env
+ExecStart=/srv/bissel-modern/ops/backup_sqlite.sh
+
+[Install]
+WantedBy=timers.target

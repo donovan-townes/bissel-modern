@@ -1,0 +1,9 @@
+[Unit]
+Description=Run remnant DB backup weekly
+
+[Timer]
+OnCalendar=weekly
+Persistent=true
+
+[Install]
+WantedBy=timers.target

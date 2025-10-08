@@ -12,6 +12,9 @@ TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
 BACKUP_FILE="$BACKUP_DIR/remnant-$TIMESTAMP.sqlite"
 GZIP=true
 MAX_KEEP=30
+# Optional rclone remote (set RCLONE_REMOTE in environment, e.g. 'gdrive:remnant')
+RCLONE_REMOTE=${RCLONE_REMOTE:-}
+KEEP_REMOTE=${KEEP_REMOTE:-4}
 
 mkdir -p "$BACKUP_DIR"
 
@@ -46,6 +49,25 @@ if [ ${#files[@]} -gt $MAX_KEEP ]; then
 	if [ -n "$to_delete" ]; then
 		echo "$to_delete" | xargs -r rm --
 		echo "Pruned old backups"
+	fi
+fi
+
+# Upload to remote via rclone if configured
+if [ -n "$RCLONE_REMOTE" ] && command -v rclone >/dev/null 2>&1; then
+	echo "Uploading $BACKUP_FILE to remote: $RCLONE_REMOTE"
+	rclone copyto "$BACKUP_FILE" "$RCLONE_REMOTE/$(basename "$BACKUP_FILE")" --quiet || echo "rclone upload failed"
+
+	# Prune remote: keep most recent $KEEP_REMOTE files
+	remote_files=$(rclone lsf --files-only --max-age 3650d "$RCLONE_REMOTE" | grep -E '^remnant-' | sort -r)
+	if [ -n "$remote_files" ]; then
+		# list in chronological order (newest first), skip KEEP_REMOTE, delete the rest
+		to_delete=$(echo "$remote_files" | sed -n "$((KEEP_REMOTE+1)),9999p") || true
+		if [ -n "$to_delete" ]; then
+			echo "$to_delete" | while read -r f; do
+				echo "Removing remote file: $f"
+				rclone deletefile "$RCLONE_REMOTE/$f" || echo "failed to delete $f"
+			done
+		fi
 	fi
 fi
 

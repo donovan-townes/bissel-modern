@@ -1,15 +1,21 @@
 [Unit]
 Description=Quil Discord Bot
-After=network.target
+Wants=network-online.target
+After=network-online.target
 
 [Service]
 Type=simple
 User=quil
+Group=quil
 WorkingDirectory=/srv/bissel-modern
 EnvironmentFile=/srv/bissel-modern/.env
-ExecStart=/usr/bin/npm start
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/node --enable-source-maps /srv/bissel-modern/dist/src/core/bot.js
 Restart=on-failure
 RestartSec=5
+KillMode=process
+LimitNOFILE=4096
+PrivateTmp=true
 
 [Install]
 WantedBy=multi-user.target
