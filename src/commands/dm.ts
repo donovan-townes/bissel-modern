@@ -20,8 +20,6 @@ export const data = new SlashCommandBuilder()
   .addSubcommand(sc => sc
     .setName('list')
     .setDescription('Show who is currently Available to DM'))
-  // Match legacy: gate the toggle for GMs/Staff; list is for everyone.
-  .setDefaultMemberPermissions(PermissionFlagsBits.SendMessages);
 
 // ---- Executor ---- 
 export async function execute(interaction: ChatInputCommandInteraction) {

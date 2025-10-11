@@ -33,6 +33,11 @@
       "🪶 Transactions are recorded in {channel}, not here.",
       "🪶 Neat columns live in {channel}. Shoo.",
       "🪶 Take it to {channel} before the ink sours."
+    ],
+    "noActiveChar": [
+      "🪶 Sorry, there's no active character for {user}. Be sure they've been initiated.",
+      "🪶 {user} has no active character. They need to /initiate first.",
+      "🪶 No active character found for {user}. Try /initiate."
     ]
   },    
   "errors": {

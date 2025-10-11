@@ -20,23 +20,23 @@
 
   "add": {
     "ok": [
-      "OK. {mention} - {name}: **+{amt} GT** \u2192 **{newGt} GT**{reasonLine}",
-      "Ticket added: {mention} - {name}: **+{amt} GT**. Total **{newGt} GT**{reasonLine}",
-      "Logged: {mention} - {name} gained **{amt} GT** (now **{newGt} GT**){reasonLine}"
+      "OK. {mention} - {name}: **+{amt} GT** \u2192 **{newGt} GT** {reasonLine}",
+      "Ticket added: {mention} - {name}: **+{amt} GT**. Total **{newGt} GT** {reasonLine}",
+      "Logged: {mention} - {name} gained **{amt} GT** (now **{newGt} GT**) {reasonLine}"
     ]
   },
   "adjust": {
     "ok": [
-      "OK. {mention} - {name}: **{sign}{absAmt} GT** \u2192 **{newGt} GT**{reasonLine}",
-      "Adjusted: {mention} - {name}: **{sign}{absAmt} GT**. Total **{newGt} GT**{reasonLine}",
-      "Correction filed: {mention} - {name}: **{sign}{absAmt} GT** (now **{newGt} GT**){reasonLine}"
+      "OK. {mention} - {name}: **{sign}{absAmt} GT** \u2192 **{newGt} GT** {reasonLine}",
+      "Adjusted: {mention} - {name}: **{sign}{absAmt} GT**. Total **{newGt} GT** {reasonLine}",
+      "Correction filed: {mention} - {name}: **{sign}{absAmt} GT** (now **{newGt} GT**) {reasonLine}"
     ]
   },
   "set": {
     "ok": [
-      "OK. {mention} - {name}: set to **{newGt} GT** (was {oldGt} GT){reasonLine}",
-      "Total reset: {mention} - {name} **{newGt} GT** (prev {oldGt} GT){reasonLine}",
-      "Exact set recorded: {mention} - {name} \u2192 **{newGt} GT**{reasonLine}"
+      "OK. {mention} - {name}: set to **{newGt} GT** (was {oldGt} GT) {reasonLine}",
+      "Total reset: {mention} - {name} **{newGt} GT** (prev {oldGt} GT) {reasonLine}",
+      "Exact set recorded: {mention} - {name} \u2192 **{newGt} GT** {reasonLine}"
     ]
   },
 

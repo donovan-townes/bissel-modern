@@ -10,6 +10,7 @@ import { CONFIG } from "../config/resolved.js";
 import { validateCommandPermissions } from "../config/validaters.js";
 import { getDb } from "../db/index.js";
 import { t } from "../lib/i18n.js";
+const MAGIC_ITEMS_CHANNEL_ID = CONFIG.guild?.config.channels?.magicItems || null;
 
 // --- Types / DB ---
 type PlayerRow = {
@@ -159,14 +160,16 @@ export async function execute(ix: ChatInputCommandInteraction) {
     return; 
   }
   // Channel guard: only allowed in Resource channel (or test override if you use one)
-  if (REWARDS_CHANNEL_ID && ix.channel?.id !== REWARDS_CHANNEL_ID) {
-    await ix.reply({
-      flags: MessageFlags.Ephemeral,
-      content:
-        t('common.notInResourceChannel'),
-    });
-    return;
-  }
+const isInAllowedChannel = ix.channelId === REWARDS_CHANNEL_ID || ix.channelId === MAGIC_ITEMS_CHANNEL_ID;
+const isInConfiguredGuild = ix.guildId === CONFIG.guild?.id;
+
+if (!isInAllowedChannel && isInConfiguredGuild) {
+  await ix.reply({
+    flags: MessageFlags.Ephemeral,
+    content: t('sell.notInResourceChannel'),
+  });
+  return;
+}
 
 
   if (sub === "show") {

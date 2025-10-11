@@ -1,24 +1,22 @@
 // core/bot.ts
-import { 
-  Client, 
-  GatewayIntentBits, 
+import {
+  Client,
+  GatewayIntentBits,
   Events,
   SlashCommandBuilder,
-  ChatInputCommandInteraction, 
-  MessageFlags
-  } from "discord.js";
+  ChatInputCommandInteraction,
+  MessageFlags,
+} from "discord.js";
 
-import * as fsSync from 'node:fs';
-import path from 'node:path'
-import {  pathToFileURL, fileURLToPath } from "node:url"
+import * as fsSync from "node:fs";
+import path from "node:path";
+import { pathToFileURL, fileURLToPath } from "node:url";
 
+import { CONFIG } from "../config/resolved.js";
+import { initDb } from "../db/index.js";
 
-import { CONFIG } from '../config/resolved.js';
-import { initDb } from '../db/index.js';
-
-import * as retire from '../commands/retire.js';
-import { t } from '../lib/i18n.js';
-
+import * as retire from "../commands/retire.js";
+import { t } from "../lib/i18n.js";
 
 // figure out if we're executing from dist or src
 
@@ -26,29 +24,34 @@ import { t } from '../lib/i18n.js';
 type CommandModule = {
   data?: SlashCommandBuilder;
   execute?: (i: ChatInputCommandInteraction) => Promise<void>;
-}
+};
 
 const commands = new Map<string, CommandModule>();
 
 // dynamically load commands from the commands directory
 async function loadCommands() {
   // determine if we're running from src/ or dist/
-  const here = fileURLToPath(new URL('.', import.meta.url)); 
+  const here = fileURLToPath(new URL(".", import.meta.url));
   const isBuilt = here.includes(`${path.sep}dist${path.sep}`);
-  const commandsDir = path.resolve(here, '../commands');     
-  const ext = isBuilt ? '.js' : '.ts';
+  const commandsDir = path.resolve(here, "../commands");
+  const ext = isBuilt ? ".js" : ".ts";
 
   console.log(`Loading commands from ${commandsDir} (built=${isBuilt})`);
 
   const files = fsSync
     .readdirSync(commandsDir)
-    .filter(f => f.endsWith(ext) && !f.endsWith('.d.ts') && !f.endsWith('.map'));
+    .filter(
+      (f) => f.endsWith(ext) && !f.endsWith(".d.ts") && !f.endsWith(".map")
+    );
 
-  console.log(`Command files found (${ext}):`, files.map(f => path.join(commandsDir, f)));
+  console.log(
+    `Command files found (${ext}):`,
+    files.map((f) => path.join(commandsDir, f))
+  );
 
   for (const f of files) {
     try {
-      const full = path.join(commandsDir, f);                 // ✅ join directory + filename
+      const full = path.join(commandsDir, f); // ✅ join directory + filename
       const mod: CommandModule = await import(pathToFileURL(full).href);
       if (!mod?.data?.name) {
         console.warn(`⚠️  Skipping ${full}: no export 'data' with a name`);
@@ -62,9 +65,13 @@ async function loadCommands() {
   console.log(`Loaded ${commands.size} slash commands.`);
 }
 
-
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMembers],
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildMembers,
+  ],
 });
 
 const guildId = CONFIG.guild!.id;
@@ -81,40 +88,61 @@ client.on(Events.InteractionCreate, async (interaction) => {
   if (interaction.isChatInputCommand()) {
     const mod = commands.get(interaction.commandName);
     if (!mod?.execute) {
-      const msg = t('errors.generic') || "Command not found."; // should never happen
+      const msg = t("errors.generic") || "Command not found."; // should never happen
       if (interaction.deferred || interaction.replied) {
-        await interaction.followUp({ content: msg, flags: MessageFlags.Ephemeral })
+        await interaction.followUp({
+          content: msg,
+          flags: MessageFlags.Ephemeral,
+        });
       } else {
-        await interaction.reply({ content: msg, flags: MessageFlags.Ephemeral })
+        await interaction.reply({
+          content: msg,
+          flags: MessageFlags.Ephemeral,
+        });
       }
-      return // rather not deal with it past this point.
+      return; // rather not deal with it past this point.
     }
     try {
-      await mod.execute(interaction)
+      await mod.execute(interaction);
     } catch (err) {
       console.error(`[/${interaction.commandName}]`, err);
-      const msg = t('errors.generic') || "An error occurred while executing the command."; 
+      const msg =
+        t("errors.generic") || "An error occurred while executing the command.";
       if (interaction.deferred || interaction.replied) {
-        await interaction.followUp({ content: msg, flags: MessageFlags.Ephemeral })
+        await interaction.followUp({
+          content: msg,
+          flags: MessageFlags.Ephemeral,
+        });
       } else {
-        await interaction.reply({ content: msg, flags: MessageFlags.Ephemeral })
-      }      
+        await interaction.reply({
+          content: msg,
+          flags: MessageFlags.Ephemeral,
+        });
+      }
     }
-    return
+    return;
   }
 
   if (interaction.isModalSubmit()) {
     //dynamically dispatch if you add more modals later.
-    if (interaction.customId.startsWith('retire-confirm-')) {
+    if (interaction.customId.startsWith("retire-confirm-")) {
       try {
         await retire.handleModal(interaction);
       } catch (err) {
-        console.error('[Retire Modal]', err);
-        const msg = t('errors.generic') || "An error occurred while processing the modal.";
+        console.error("[Retire Modal]", err);
+        const msg =
+          t("errors.generic") ||
+          "An error occurred while processing the modal.";
         if (interaction.deferred || interaction.replied) {
-          await interaction.followUp({ content: msg, flags: MessageFlags.Ephemeral });
+          await interaction.followUp({
+            content: msg,
+            flags: MessageFlags.Ephemeral,
+          });
         } else {
-          await interaction.reply({ content: msg, flags: MessageFlags.Ephemeral });
+          await interaction.reply({
+            content: msg,
+            flags: MessageFlags.Ephemeral,
+          });
         }
       }
     }
@@ -124,34 +152,50 @@ client.on(Events.InteractionCreate, async (interaction) => {
 client.once(Events.ClientReady, async () => {
   await loadCommands();
   await initDb();
-  console.log(`Ready as ${client.user?.tag}. Guild: ${guildId} (${guildCfg.name})`);
+  console.log(
+    `Ready as ${client.user?.tag}. Guild: ${guildId} (${guildCfg.name})`
+  );
 });
+const DEV_TOKEN = CONFIG.secrets.devToken;
+const isDevelopment = process.argv.includes("--dev");
 
-client.login(CONFIG.secrets.token).catch(() => {
-  console.error("❌ Failed to login to Discord. Please check your DISCORD_TOKEN.");
-  process.exit(1);
-});
+if (isDevelopment) {
+  console.log("🚀 Starting in development mode...");
+  client.login(DEV_TOKEN).catch(() => {
+    console.error(
+      "❌ Failed to login to Discord. Please check your DEV_DISCORD_TOKEN."
+    );
+    process.exit(1);
+  });
+} else {
+  console.log("🚀 Starting in production mode...");
+  client.login(CONFIG.secrets.token).catch(() => {
+    console.error(
+      "❌ Failed to login to Discord. Please check your DISCORD_TOKEN."
+    );
+    process.exit(1);
+  });
+}
 
 // graceful shutdown
-process.on('SIGINT', async () => {
-  console.log('Received SIGINT, shutting down...');
+process.on("SIGINT", async () => {
+  console.log("Received SIGINT, shutting down...");
   await client.destroy();
   process.exit(0);
 });
 
 // on unhandled rejections
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled Rejection at:", promise, "reason:", reason);
 });
 
 // on uncaught exceptions
-process.on('uncaughtException', (err) => {
-  console.error('Uncaught Exception thrown:', err);
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught Exception thrown:", err);
   process.exit(1);
 });
 
 // on warnings
-process.on('warning', (warning) => {
-  console.warn('Warning:', warning);
+process.on("warning", (warning) => {
+  console.warn("Warning:", warning);
 });
-

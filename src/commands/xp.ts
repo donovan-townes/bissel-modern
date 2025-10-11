@@ -16,7 +16,7 @@ import { CONFIG } from "../config/resolved.js";
 import { validateCommandPermissions } from "../config/validaters.js";
 import { getDb } from "../db/index.js";
 import { t } from "../lib/i18n.js";
-
+const MAGIC_ITEMS_CHANNEL_ID = CONFIG.guild?.config.channels?.magicItems || null;
 
 type PlayerRow = { userId: string; name: string; xp: number; level: number };
 
@@ -135,14 +135,16 @@ export async function execute(ix: ChatInputCommandInteraction) {
   // Role gates (show = everyone unless configured)
   if (!validateCommandPermissions(ix, member, PERMS)) return;
   // Channel guard: only allowed in Resource channel (or test override if you use one)
-  if (REWARDS_CHANNEL_ID && ix.channel?.id !== REWARDS_CHANNEL_ID) {
-    await ix.reply({
-      flags: MessageFlags.Ephemeral,
-      content:
-        t('common.notInResourceChannel'),
-    });
-    return;
-  }
+  const isInAllowedChannel = ix.channelId === REWARDS_CHANNEL_ID || ix.channelId === MAGIC_ITEMS_CHANNEL_ID;
+  const isInConfiguredGuild = ix.guildId === CONFIG.guild?.id;
+
+if (!isInAllowedChannel && isInConfiguredGuild) {
+  await ix.reply({
+    flags: MessageFlags.Ephemeral,
+    content: t('sell.notInResourceChannel'),
+  });
+  return;
+}
 
   if (sub === "show") {
     const user = ix.options.getUser("user") ?? ix.user;
@@ -191,8 +193,15 @@ export async function execute(ix: ChatInputCommandInteraction) {
     await updatePlayerXPLevel(user.id, res.xp, res.level);
 
     await ix.reply({
-      content: t('xp.add.ok', { mention: userMention(user.id), name: before.name, amt, newXp: res.xp.toLocaleString(), oldLevel: before.level, newLevel: res.level, reason: reason || ""
-    })
+      content: t('xp.add.ok', {
+        mention: userMention(user.id),
+        name: before.name,
+        amt,
+        newXp: res.xp.toLocaleString(),
+        oldLevel: before.level,
+        newLevel: res.level,
+        reasonLine: reason ? t('gp.reasonFmt', { reason }) : ""
+      })
     });
 
     if (res.levelsChanged !== 0) {
@@ -210,8 +219,16 @@ export async function execute(ix: ChatInputCommandInteraction) {
     const sign = amt >= 0 ? "+" : "−";
 
     await ix.reply({
-      content: t('xp.adjust.ok', { mention: userMention(user.id), name: before.name, sign, absAmt: Math.abs(amt), newXp: res.xp.toLocaleString(), oldLevel: before.level, newLevel: res.level, reason: reason || ""
-    })
+      content: t('xp.adjust.ok', {
+        mention: userMention(user.id),
+        name: before.name,
+        sign,
+        absAmt: Math.abs(amt),
+        newXp: res.xp.toLocaleString(),
+        oldLevel: before.level,
+        newLevel: res.level,
+        reasonLine: reason ? t('gp.reasonFmt', { reason }) : ""
+      })
     });
 
 
@@ -229,8 +246,14 @@ export async function execute(ix: ChatInputCommandInteraction) {
     await updatePlayerXPLevel(user.id, amt, newLevel);
 
     await ix.reply({
-      content: t('xp.set.ok', { mention: userMention(user.id), name: before.name, newXp: amt.toLocaleString(), newLevel, oldLevel: before.level, reason: reason || ""
-    })
+      content: t('xp.set.ok', {
+        mention: userMention(user.id),
+        name: before.name,
+        newXp: amt.toLocaleString(),
+        newLevel,
+        oldLevel: before.level,
+        reasonLine: reason ? t('gp.reasonFmt', { reason }) : ""
+      })
     });
 
 

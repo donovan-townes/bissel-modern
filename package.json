@@ -8,13 +8,16 @@
     "doc": "docs"
   },
   "scripts": {
-    "dev": "tsx watch src/core/bot.ts",
+    "dev": "tsx watch src/core/bot.ts --dev",
     "build": "tsc",
     "strings:smoke": "tsx src/scripts/strings-smoke.ts",
     "deploy:dev": "tsx src/scripts/register-commands.ts",
     "deploy:prod": "tsx src/scripts/register-commands.ts --prod",
     "deploy:list": "tsx src/scripts/register-commands.ts --list",
-    "deploy:clear:global": "tsx src/scripts/register-commands.ts --clear-global",
+    "deploy:list:dev": "tsx src/scripts/register-commands.ts --list",
+    "deploy:list:prod": "tsx src/scripts/register-commands.ts --list --prod",
+    "deploy:clear:global:dev": "tsx src/scripts/register-commands.ts --clear-global",
+    "deploy:clear:global:prod": "tsx src/scripts/register-commands.ts --clear-global --prod",
     "deploy:global": "cross-env DEV_GUILD_ID= tsx src/scripts/register-commands.ts",
     "prestart": "npm run build",
     "start": "node --enable-source-maps dist/src/core/bot.js",

@@ -5,7 +5,12 @@
       "New Ledger Entry: {name}",
       "Quil Registers a New Adventurer: {name}",
       "Filed & Feathered: {name}",
-      "Welcome to the Ledger, {name}"
+      "Welcome to the Ledger, {name}",
+      "A Quill Dipped Anew: {name}",
+      "Another Entry Bleeds Ink: {name}",
+      "Scroll Signed in Triplicate: {name}",
+      "Filed Under ‘Questionable Heroism’: {name}",
+      "Fresh From Orientation: {name}"
     ],
     "userGreeting": [
       "🪶 The ledger opens… Welcome, **{name}**. Try not to spill anything on the parchment.",
@@ -13,7 +18,18 @@
       "🪶 Ink to parchment—**{name}** enters the guild rolls. Don’t smudge the margins.",
       "🪶 Signature received. **{name}**, you’re now an adventurer on record. Do behave. (Or don’t.)",
       "🪶 I’ve logged you properly, **{name}**. Please keep your chaos within the lines.",
-      "🪶 Welcome, **{name}**. Consider this the neatest part of your career."
+      "🪶 Welcome, **{name}**. Consider this the neatest part of your career.",
+      "🪶 *scratch scratch* — There. **{name}**, you exist in the paperwork now. Try to stay that way.",
+      "🪶 Welcome, **{name}**. I hope you like bureaucracy; adventure is mostly that with better outfits.",
+      "🪶 Ah, **{name}**. The ink’s barely dry and already you look like trouble.",
+      "🪶 New quill stroke, new headache. Hello, **{name}**.",
+      "🪶 **{name}**, your name looks lovely in ink. Let’s see how it looks on a tombstone.",
+      "🪶 Welcome, **{name}**. Sharp name, sharper reputation — reminds me of another ‘Dagger’ I once filed under *Caution: Pointy Personality*.",
+      "🪶 Another adventurer with an edge. The quill quivers — last time I saw a name like **{name}**, it left the parchment with bite marks.",
+      "🪶 Ah, **{name}** — one of Valkor’s recruits, I presume. The parchment smells faintly of brimstone and good leadership.",
+      "🪶 Another adventurer under Valkor’s watchful eye. Try not to make him rewrite the rulebook again.",
+      "🪶 Filed under ‘Moderately Supervised by Sauron.’ Don’t worry — he only burns paperwork metaphorically these days."
+      
     ],
     "description": [
       "Quil scratches your name into the guild ledger with a satisfied flourish. Your kit is basic, your pockets jingle (a little), and your fate is now a matter of public record. Adventure awaits; try not to get any dragon on the paperwork.",
@@ -21,7 +37,12 @@
       "The parchment accepts your name, the ledger accepts your debt, and destiny sighs audibly. Gear up, keep receipts, and remember: I balance the books even when you don’t.",
       "Your entry is clean; it won’t stay that way. Missions blot pages, gold stains margins, and victories crease corners. Keep me updated and I’ll keep you official.",
       "I’ve filed you under ‘Promising, Possibly Chaotic.’ Treasure converts to tidy numbers; trouble converts to longer entries. Bring me both, and we’ll get along.",
-      "Welcome to the guild bureaucracy masquerading as heroism. You bring the feats; I’ll bring the ink. Together we make history—or at least legible notes."
+      "Welcome to the guild bureaucracy masquerading as heroism. You bring the feats; I’ll bring the ink. Together we make history—or at least legible notes.",
+      "A crisp page accepts your details—level, purse, and all. Quil sniffs, unimpressed, but files it anyway.",
+      "Somewhere deep in the archives, an intern groans as your folder manifests. Welcome to the system.",
+      "Your record joins a thousand others—some smudged, some burned, all *eventful*. Try not to catch fire.",
+      "Paperwork complete, stamp applied, and soul semi-sold. You’re officially an adventurer, **{name}**.",
+      "Quil adjusts it's spectacles, nods once. ‘Competent enough to register. We’ll see about *adventuring*.’"
     ],
     "footer": [
       "🪶 Quil, Guild Scribe — Mind the margins.",
@@ -29,7 +50,20 @@
       "🪶 Quil keeps the ink; you keep the receipts.",
       "🪶 Filed by Quil — Ledger balanced (for now).",
       "🪶 Quil — Writing history one snide remark at a time.",
-      "🪶 Officially recorded. Unofficially judged. — Quil"
+      "🪶 Officially recorded. Unofficially judged. — Quil",
+      "🪶 Quil — Still waiting for Jess to return the good pen.",
+      "🪶 Stamped by Quil — Smells faintly of ink and exasperation.",
+      "🪶 Quil — Patron Saint of Paper Cuts.",
+      "🪶 Recorded without enthusiasm — Quil.",
+      "🪶 Quil — Inked, indexed, and already regretting it.",
+      "🪶 Quil — may the ink dry before the next breeze rolls through.",
+      "🪶 Logged on a cool breeze — the parchment almost sighed.",
+      "🪶 The ink stirs in a soft zephyr — must mean someone interesting joined.",
+      "🪶 Filed between gusts of inspiration and drafts of nonsense.",
+      "🪶 Quil — under Valkor’s supervision (which is exactly as stressful as it sounds).",
+      "🪶 Logged with oversight from Sauron himself — no pressure.",
+      "🪶 Quil — prefers her ink cool and her DMs calmer than Valkor.",
+      "🪶 Filed under ‘Approved by Management’ — a rare Valkor signature."
     ]
   }
 }

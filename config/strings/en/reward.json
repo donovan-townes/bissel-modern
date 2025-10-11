@@ -83,18 +83,6 @@
         "{name} — L{level}\nAward: +{xp} XP, +{gp} GP, +{gt} GT\nTotals: XP {nextXp} · L{nextLevel} · GP {nextGp} · GT {nextGt}",
         "{name} (L{level})\nStipend: +{xp} XP, +{gp} GP, +{gt} GT\nNew: XP {nextXp} · L{nextLevel} · GP {nextGp} · GT {nextGt}"
         ]
-    },
-    "staff": {
-        "title": [
-        "Staff Rewards",
-        "Quil's Note — Staff Stipends",
-        "Staff Ledger Update"
-        ],
-        "line": [
-        "{name} (L{level}): +{xp} XP, +{gp} GP, +{gt} GT → XP {nextXp} · L{nextLevel} · GP {nextGp} · GT {nextGt}",
-        "{name} — L{level}: +{xp} XP, +{gp} GP, +{gt} GT → XP {nextXp} · L{nextLevel} · GP {nextGp} · GT {nextGt}",
-        "{name} (L{level}) gained +{xp} XP, +{gp} GP, +{gt} GT → XP {nextXp} · L{nextLevel} · GP {nextGp} · GT {nextGt}"
-        ]
     }
 }
 }
