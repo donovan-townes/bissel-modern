@@ -20,6 +20,7 @@ type PlayerRow = {
 
 const CFG = CONFIG.guild!.config;
 const REWARDS_CHANNEL_ID = CFG.channels?.resourceTracking || null;
+const MAGIC_ITEMS_CHANNEL_ID = CFG.channels?.magicItems || null;
 
 // helpers
 const toCp = (gp: number) => Math.round(gp * 100);
@@ -59,14 +60,16 @@ export async function execute(ix: ChatInputCommandInteraction) {
   // Basic permission scaffold (everyone can use; still validates bot perms)
 
   // Channel guard: only allowed in Resource channel (or test override if you use one)
-  if (REWARDS_CHANNEL_ID && ix.channel?.id !== REWARDS_CHANNEL_ID) {
-    await ix.reply({
-      flags: MessageFlags.Ephemeral,
-      content:
-        t('sell.notInResourceChannel'),
-    });
-    return;
-  }
+const isInAllowedChannel = ix.channelId === REWARDS_CHANNEL_ID || ix.channelId === MAGIC_ITEMS_CHANNEL_ID;
+const isInConfiguredGuild = ix.guildId === CONFIG.guild?.id;
+
+if (!isInAllowedChannel && isInConfiguredGuild) {
+  await ix.reply({
+    flags: MessageFlags.Ephemeral,
+    content: t('sell.notInResourceChannel'),
+  });
+  return;
+}
 
   const member = ix.member as GuildMember;
   const user = member.user;

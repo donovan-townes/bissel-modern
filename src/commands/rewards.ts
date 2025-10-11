@@ -15,8 +15,6 @@ import { getDb } from "../db/index.js";
 import {
   computeCustomReward,
   computeDmReward,
-  computeStaffReward,
-  computePlayerTpStep,
   applyResourceDeltas,
 } from "../domain/rewards.js";
 import { levelForXP, proficiencyFor } from "../domain/xp.js";
@@ -32,7 +30,7 @@ type PlayerRow = {
   xp: number;
   level: number;
   cp: number; // stored copper
-  tp: number; // stored as half-points (0.5 => 1)
+  tp: number; // stored GT/TP
 };
 
 async function getPlayer(userId: string): Promise<PlayerRow | null> {
@@ -118,7 +116,7 @@ export const data = new SlashCommandBuilder()
       .addUserOption((o) => o.setName("user10").setDescription("Target #10"))
       .addIntegerOption((o) => o.setName("xp").setDescription("XP to award (>=0)").setMinValue(0))
       .addNumberOption((o) => o.setName("gp").setDescription("GP to award (>=0)").setMinValue(0))
-      .addNumberOption((o) => o.setName("gt").setDescription("GT to award (>=0, supports 0.5)").setMinValue(0))
+      .addNumberOption((o) => o.setName("gt").setDescription("GT to award (>=0").setMinValue(0))
       .addBooleanOption((o) => o.setName("gt_auto").setDescription("Auto GT by level band (ignores explicit GT if true)"))
       .addStringOption((o) => o.setName("reason").setDescription("Why? (stored in audit later)").setMaxLength(200))
   )
@@ -129,18 +127,7 @@ export const data = new SlashCommandBuilder()
       .setDescription("Claim DM reward for yourself based on your character level.")
       .addStringOption((o) => o.setName("reason").setDescription("Why? (optional)").setMaxLength(200))
   )
-  // staff stipend to tagged users
-  .addSubcommand((sc) =>
-    sc
-      .setName("staff")
-      .setDescription("Award staff reward to one or more staffers.")
-      .addUserOption((o) => o.setName("user1").setDescription("Target #1").setRequired(true))
-      .addUserOption((o) => o.setName("user2").setDescription("Target #2"))
-      .addUserOption((o) => o.setName("user3").setDescription("Target #3"))
-      .addUserOption((o) => o.setName("user4").setDescription("Target #4"))
-      .addUserOption((o) => o.setName("user5").setDescription("Target #5"))
-      .addStringOption((o) => o.setName("reason").setDescription("Why? (optional)").setMaxLength(200))
-  )
+
 
 /* ──────────────────────────────────────────────────────────────────────────────
    EXECUTOR
@@ -160,7 +147,6 @@ export async function execute(ix: ChatInputCommandInteraction) {
 
   if (sub === "custom") return handleCustom(ix);
   if (sub === "dm") return handleDm(ix);
-  if (sub === "staff") return handleStaff(ix);
 }
 
 /* ──────────────────────────────────────────────────────────────────────────────
@@ -231,15 +217,12 @@ async function handleCustom(ix: ChatInputCommandInteraction) {
 
     const level = levelForXP(before.xp);
 
-    let tpUnits = 0;
-    if (tpAuto) {
-      tpUnits = computePlayerTpStep(level);
-    } else {
-      tpUnits = Math.round((tpIn ?? 0));
-    }
-    const delta = computeCustomReward({ xp: xpIn, gp: gpIn, tp: tpUnits });
+    let tp = 0;
+    tp = Math.round((tpIn ?? 0));
 
-    const next = applyResourceDeltas(before, { ...delta, tpUnits });
+    const delta = computeCustomReward({ xp: xpIn, gp: gpIn, tp });
+
+    const next = applyResourceDeltas(before, { ...delta, tp });
     await saveSnapshot(u.id, { xp: next.xp, level: next.level, cp: next.cp, tp: next.tp, name: before.name });
 
     if (next.levelsChanged !== 0) {
@@ -248,8 +231,8 @@ async function handleCustom(ix: ChatInputCommandInteraction) {
     
     // Embed
     // field text
-    const heading = t("reward.custom.fieldHeading", { username: u.username, charName: before.name });
-    const deltaStr = t("reward.custom.fmt.delta", { xp: delta.xp ?? 0, gp: fmtGp(delta.cp ?? 0), gt: tpUnits });
+    const heading = t("reward.custom.fieldHeading", { username: u.displayName, charName: before.name });
+    const deltaStr = t("reward.custom.fmt.delta", { xp: delta.xp ?? 0, gp: fmtGp(delta.cp ?? 0), gt: tp });
     const beforeStr = t("reward.custom.fmt.before", { xp: before.xp.toLocaleString(), level, gp: fmtGp(before.cp), gt: before.tp });
     const afterStr  = t("reward.custom.fmt.after",  { xp: next.xp.toLocaleString(),  level: next.level, gp: fmtGp(next.cp), gt: next.tp });
 
@@ -303,7 +286,7 @@ async function handleDm(ix: ChatInputCommandInteraction) {
       level,
       xp: delta.xp ?? 0,
       gp: fmtGp(delta.cp ?? 0),
-      gt: delta.tpUnits ?? 0,
+      gt: delta.tp ?? 0,
       nextXp: next.xp.toLocaleString(),
       nextLevel: next.level,
       nextGp: fmtGp(next.cp),
@@ -312,55 +295,6 @@ async function handleDm(ix: ChatInputCommandInteraction) {
     .setFooter({ text: reason ? t("reward.common.footerReason", { reason }) : t("reward.common.footerDash") });
 
   await ix.reply({embeds: [embed] });
-}
-
-/* STAFF: award bracketed Staff reward to tagged users */
-async function handleStaff(ix: ChatInputCommandInteraction) {
-  const recipients = collectUsers(ix, 5);
-  const reason = ix.options.getString("reason") ?? null;
-
-  if (!recipients.length) {
-    await ix.reply({ ephemeral: true, content: t("reward.errors.staffNoRecipients")});
-    return;
-  }
-
-  const lines: string[] = [];
-  for (const u of recipients) {
-    const before = await getPlayer(u.id);
-    if (!before) {
-      await ix.reply({ flags: MessageFlags.Ephemeral, content: t("reward.errors.userNotInSystem", { username: u.username }) });
-      return;
-    }
-
-    const level = levelForXP(before.xp);
-    const delta = computeStaffReward(level);
-    const next = applyResourceDeltas(before, delta);
-    await saveSnapshot(u.id, { xp: next.xp, level: next.level, cp: next.cp, tp: next.tp, name: before.name });
-
-    if (next.levelsChanged !== 0) {
-      await announceLevelChange(ix, u.id, before.name, next.level, next.levelsChanged);
-    }
-
-    // per-user line
-    lines.push(t("reward.staff.line", {
-      name: before.name,
-      level,
-      xp: delta.xp ?? 0,
-      gp: fmtGp(delta.cp ?? 0),
-      gt: delta.tpUnits ?? 0,
-      nextXp: next.xp.toLocaleString(),
-      nextLevel: next.level,
-      nextGp: fmtGp(next.cp),
-      nextGt: next.tp
-        }));
-  }
-
-  const embed = new EmbedBuilder()
-    .setTitle(t("reward.staff.title"))
-    .setDescription(lines.join("\n"))
-    .setFooter({ text: reason ? t("reward.common.footerReason", { reason }) : t("reward.common.footerDash") });
-
-  await ix.reply({ embeds: [embed] });
 }
 
 export default { data, execute };

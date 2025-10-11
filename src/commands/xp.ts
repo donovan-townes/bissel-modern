@@ -191,7 +191,7 @@ export async function execute(ix: ChatInputCommandInteraction) {
     await updatePlayerXPLevel(user.id, res.xp, res.level);
 
     await ix.reply({
-      content: t('xp.add.ok', { mention: userMention(user.id), name: before.name, amt, newXp: res.xp.toLocaleString(), oldLevel: before.level, newLevel: res.level, reason: reason || "none."
+      content: t('xp.add.ok', { mention: userMention(user.id), name: before.name, amt, newXp: res.xp.toLocaleString(), oldLevel: before.level, newLevel: res.level, reason: reason || ""
     })
     });
 
@@ -210,7 +210,7 @@ export async function execute(ix: ChatInputCommandInteraction) {
     const sign = amt >= 0 ? "+" : "−";
 
     await ix.reply({
-      content: t('xp.adjust.ok', { mention: userMention(user.id), name: before.name, sign, absAmt: Math.abs(amt), newXp: res.xp.toLocaleString(), oldLevel: before.level, newLevel: res.level, reason: reason || "none."
+      content: t('xp.adjust.ok', { mention: userMention(user.id), name: before.name, sign, absAmt: Math.abs(amt), newXp: res.xp.toLocaleString(), oldLevel: before.level, newLevel: res.level, reason: reason || ""
     })
     });
 
@@ -229,7 +229,7 @@ export async function execute(ix: ChatInputCommandInteraction) {
     await updatePlayerXPLevel(user.id, amt, newLevel);
 
     await ix.reply({
-      content: t('xp.set.ok', { mention: userMention(user.id), name: before.name, newXp: amt.toLocaleString(), newLevel, oldLevel: before.level, reason: reason || "none."
+      content: t('xp.set.ok', { mention: userMention(user.id), name: before.name, newXp: amt.toLocaleString(), newLevel, oldLevel: before.level, reason: reason || ""
     })
     });
 

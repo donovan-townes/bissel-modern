@@ -40,6 +40,6 @@
     ]
   },
 
-  "reasonFmt": " \\n _({reason})_"
+  "reasonFmt": " _({reason})_"
 }
 }

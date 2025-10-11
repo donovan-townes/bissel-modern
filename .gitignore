@@ -8,7 +8,7 @@ dist
 .DS_Store
 .vscode
 logs
-
+client handoff
 
 # SQLite runtime files
 data/**/*.sqlite

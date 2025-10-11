@@ -19,7 +19,7 @@ type PlayerRow = {
 
 const CFG = CONFIG.guild!.config;
 const REWARDS_CHANNEL_ID = CFG.channels?.resourceTracking || null;
-
+const MAGIC_ITEMS_CHANNEL_ID = CFG.channels?.magicItems || null;
 // helpers
 const toCp = (gp: number) => Math.round(gp * 100);
 const toGp = (cp: number) => (cp / 100).toFixed(2);
@@ -39,7 +39,7 @@ async function subCp(userId: string, deltaCp: number) {
 
 export const data = new SlashCommandBuilder()
   .setName("buy")
-  .setDescription("Buy an item for GP and record it to your character log.")
+  .setDescription("Buy an item for GP or GT and record it to your character log.")
   .addStringOption((opt) =>
     opt
       .setName("item")
@@ -52,20 +52,31 @@ export const data = new SlashCommandBuilder()
       .setDescription("Sale price in GP (must be > 0)")
       .setRequired(true)
       .setMinValue(0.01)
-  );
+  )
+  // .addStringOption((opt) =>
+  //   opt
+  //     .setName("resource")
+  //     .setDescription("Is this purchase made with GP or GT? (Default: GP)")
+  //     .setRequired(true)
+  //     .addChoices(
+  //       { name: "GP (Gold Pieces)", value: "gp" },
+  //       { name: "GT (Golden Tickets)", value: "gt" }
+  //     )
+  // )
+  ;
 
 export async function execute(ix: ChatInputCommandInteraction) {
-  // Basic permission scaffold (everyone can use; still validates bot perms)
+  // Channel guard: only allowed in Resource or Magic Items channel (or test override)
+const isInAllowedChannel = ix.channelId === REWARDS_CHANNEL_ID || ix.channelId === MAGIC_ITEMS_CHANNEL_ID;
+const isInConfiguredGuild = ix.guildId === CONFIG.guild?.id;
 
-  // Channel guard: only allowed in Resource channel (or test override)
-  if (REWARDS_CHANNEL_ID && ix.channel?.id !== REWARDS_CHANNEL_ID) {
-    await ix.reply({
-      flags: MessageFlags.Ephemeral,
-      content:
-        t('buy.notInResourceChannel'),
-    });
-    return;
-  }
+if (!isInAllowedChannel && isInConfiguredGuild) {
+  await ix.reply({
+    flags: MessageFlags.Ephemeral,
+    content: t('sell.notInResourceChannel'),
+  });
+  return;
+}
 
   const member = ix.member as GuildMember;
   const user = member.user;
