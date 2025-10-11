@@ -2,8 +2,9 @@
 Description=Run remnant DB backup weekly
 
 [Timer]
-OnCalendar=weekly
+OnCalendar=Sun *-*-* 03:30:00
 Persistent=true
+RandomizedDelaySec=300
 
 [Install]
 WantedBy=timers.target

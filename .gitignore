@@ -4,6 +4,7 @@
 node_modules
 
 dist
+dist_backup
 
 .DS_Store
 .vscode
