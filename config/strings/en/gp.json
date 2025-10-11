@@ -20,26 +20,26 @@
 
   "add": {
     "ok": [
-      "OK. {mention}'s adventurer: {name}: **+{amt} GP** \u2192 **{newGp} GP**{reasonLine}",
-      "Deposit recorded: {mention}'s adventurer: {name}: **+{amt} GP**. Balance **{newGp} GP**{reasonLine}",
-      "Ledger updated: {mention}'s adventurer: {name} gained **{amt} GP** (now **{newGp} GP**){reasonLine}"
+      "OK. {mention}'s adventurer: {name}: **+{amt} GP** \u2192 **{newGp} GP** | {reasonLine}",
+      "Deposit recorded: {mention}'s adventurer: {name}: **+{amt} GP**. Balance **{newGp} GP** {reasonLine}",
+      "Ledger updated: {mention}'s adventurer: {name} gained **{amt} GP** (now **{newGp} GP**) {reasonLine}"
     ]
   },
   "adjust": {
     "ok": [
-      "OK. {mention}'s adventurer: {name}: **{sign}{absAmt} GP** \u2192 **{newGp} GP**{reasonLine}",
-      "Adjusted: {mention}'s adventurer: {name}: **{sign}{absAmt} GP**. Balance **{newGp} GP**{reasonLine}",
-      "Correction filed: {mention}'s adventurer: {name}: **{sign}{absAmt} GP** (now **{newGp} GP**){reasonLine}"
+      "OK. {mention}'s adventurer: {name}: **{sign}{absAmt} GP** \u2192 **{newGp} GP** {reasonLine}",
+      "Adjusted: {mention}'s adventurer: {name}: **{sign}{absAmt} GP**. Balance **{newGp} GP** {reasonLine}",
+      "Correction filed: {mention}'s adventurer: {name}: **{sign}{absAmt} GP** (now **{newGp} GP**) {reasonLine}"
     ]
   },
   "set": {
     "ok": [
-      "OK. {mention}'s adventurer: {name}: **+{amt} GP** \u2192 **{newGp} GP**{reasonLine}",
-      "Balance reset: {mention}'s adventurer: {name}: **{newGp} GP** (prev {oldGp} GP){reasonLine}",
-      "Exact set recorded: {mention}'s adventurer: {name} \u2192 **{newGp} GP**{reasonLine}"
+      "OK. {mention}'s adventurer: {name}: **+{amt} GP** \u2192 **{newGp} GP** {reasonLine}",
+      "Balance reset: {mention}'s adventurer: {name}: **{newGp} GP** (prev {oldGp} GP) {reasonLine}",
+      "Exact set recorded: {mention}'s adventurer: {name} \u2192 **{newGp} GP** {reasonLine}"
     ]
   },
 
-  "reasonFmt": " \\n _({reason})_"
+  "reasonFmt": "_({reason})_"
 }
 }

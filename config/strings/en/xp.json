@@ -49,21 +49,21 @@
 
   "add": {
     "ok": [
-      "OK. {mention}'s adventurer: {name}: **+{amt} XP** \u2192 {newXp} XP, level {oldLevel} \u2192 {newLevel}. _(Reason: {reason})_"
+      "OK. {mention}'s adventurer: {name}: **+{amt} XP** \u2192 {newXp} XP, level {oldLevel} \u2192 {newLevel}. {reasonLine}"
     ]
   },
   "adjust": {
     "ok": [
-      "OK. {mention}'s adventurer: {name}: **{sign}{absAmt} XP** \u2192 {newXp} XP, level {oldLevel} \u2192 {newLevel}. _(Reason: {reason})_"
+      "OK. {mention}'s adventurer: {name}: **{sign}{absAmt} XP** \u2192 {newXp} XP, level {oldLevel} \u2192 {newLevel}. {reasonLine}"
     ]
   },
   "set": {
     "ok": [
-      "OK. {mention}'s adventurer: {name}: set to **{newXp} XP** \u2192 level **{newLevel}** (was L{oldLevel}). _(Reason: {reason})_"
+      "OK. {mention}'s adventurer: {name}: set to **{newXp} XP** \u2192 level **{newLevel}** (was L{oldLevel}). {reasonLine}"
     ]
   },
 
-  "reasonFmt": " \\n _({reason})_"
+  "reasonFmt": " _({reason})_"
   }
 }
 

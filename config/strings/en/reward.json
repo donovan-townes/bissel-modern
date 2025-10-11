@@ -34,8 +34,14 @@
     },
 
     "common": {
-        "footerReason": "Reason: {reason}",
-        "footerDash": "—"
+        "footerReason": "🗨️ Reason: {reason}",
+        "footerDash": ["—",
+    "🪶 Quil hopes there was a good reason for spilling all of this ink.",
+    "🪶 Quil reminds you to keep your receipts for tax purposes.",
+    "🪶 A small tip: store this information safely. Ink fades.",
+    "🪶 Quil's Ledger Reminder: Press hard to avoid smudging.",
+    "🪶 Quil suggests double-checking your entries for accuracy."
+        ]
     },
     "announce": {
         "levelUp": [
@@ -51,16 +57,16 @@
     },
     "custom": {
         "contentApplied": [
-        "Rewards applied to: {mentions}",
-        "Filed rewards for: {mentions}",
+        "🪶 Rewards applied to: {mentions}",
+        "🪶 Filed rewards for: {mentions}",
         "🪶 Entries updated for: {mentions}"
         ],
         "title": [
-        "Rewards Applied",
-        "Reward Ledger Update",
-        "Distribution Recorded"
+        "🪶 Rewards Applied",
+        "🪶 Reward Ledger Update",
+        "🪶 Distribution Recorded"
         ],
-        "fieldHeading": "{username}: {charName}",
+        "fieldHeading": "⚔️ {username}: {charName} ⚔️",
         "fieldBody": [
         "Before: {before}\nAfter:  {after}\nChange: {delta}",
         "Prior:  {before}\nResult: {after}\nDelta:  {delta}",
@@ -74,26 +80,14 @@
     },
     "dm": {
         "title": [
-        "DM Reward",
-        "Quil's Note — DM Stipend",
-        "DM Ledger Entry"
+        "DM Reward for {name}",
+        "Quil's Note — DM Stipend for {name}",
+        "DM Ledger Entry for {name}"
         ],
         "description": [
         "{name} (L{level})\n+{xp} XP, +{gp} GP, +{gt} GT\n→ XP {nextXp} · L{nextLevel} · GP {nextGp} · GT {nextGt}",
         "{name} — L{level}\nAward: +{xp} XP, +{gp} GP, +{gt} GT\nTotals: XP {nextXp} · L{nextLevel} · GP {nextGp} · GT {nextGt}",
         "{name} (L{level})\nStipend: +{xp} XP, +{gp} GP, +{gt} GT\nNew: XP {nextXp} · L{nextLevel} · GP {nextGp} · GT {nextGt}"
-        ]
-    },
-    "staff": {
-        "title": [
-        "Staff Rewards",
-        "Quil's Note — Staff Stipends",
-        "Staff Ledger Update"
-        ],
-        "line": [
-        "{name} (L{level}): +{xp} XP, +{gp} GP, +{gt} GT → XP {nextXp} · L{nextLevel} · GP {nextGp} · GT {nextGt}",
-        "{name} — L{level}: +{xp} XP, +{gp} GP, +{gt} GT → XP {nextXp} · L{nextLevel} · GP {nextGp} · GT {nextGt}",
-        "{name} (L{level}) gained +{xp} XP, +{gp} GP, +{gt} GT → XP {nextXp} · L{nextLevel} · GP {nextGp} · GT {nextGt}"
         ]
     }
 }

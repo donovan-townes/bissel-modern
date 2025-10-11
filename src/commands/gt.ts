@@ -125,7 +125,6 @@ export async function execute(ix: ChatInputCommandInteraction) {
     const deltaUnits = amt;
     const next = Math.max(0, row.tp + deltaUnits);
     await upsertPlayerTP(user.id, next, row.name);
-    // return ix.reply({ ephemeral: true, content: `OK. ${row.name}: **+${amt} GT** → ${next} GT` });
     return ix.reply({
       content: t('gt.add.ok', {
         mention: userMention(user.id),

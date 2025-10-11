@@ -10,6 +10,7 @@ import { CONFIG } from "../config/resolved.js";
 import { validateCommandPermissions } from "../config/validaters.js";
 import { getDb } from "../db/index.js";
 import { t } from "../lib/i18n.js";
+const MAGIC_ITEMS_CHANNEL_ID = CONFIG.guild?.config.channels?.magicItems || null;
 
 // --- Types / DB ---
 type PlayerRow = {
@@ -117,14 +118,14 @@ export const data = new SlashCommandBuilder()
   .addSubcommand((sc) =>
     sc
       .setName("adjust")
-      .setDescription("Adjust GP by a signed decimal (can remove)")
+      .setDescription("Adjust GP by a positive or negative decimal amount")
       .addUserOption((o) =>
         o.setName("user").setDescription("Target").setRequired(true)
       )
       .addNumberOption((o) =>
         o
           .setName("amount")
-          .setDescription("Signed GP delta (e.g., -3.75)")
+          .setDescription("Signed GP delta (e.g., -350.75)")
           .setRequired(true)
       )
       .addStringOption((o) =>
@@ -154,16 +155,19 @@ export async function execute(ix: ChatInputCommandInteraction) {
   const sub = ix.options.getSubcommand();
   const member = ix.member as GuildMember | null;
 
-    // Permission guard
+  // Permission guard
   if (!validateCommandPermissions(ix, member, PERMS)) {
     return; 
   }
-  // Channel guard: only allowed in Resource channel (or test override if you use one)
-  if (REWARDS_CHANNEL_ID && ix.channel?.id !== REWARDS_CHANNEL_ID) {
+
+  // Channel guard: only allowed in Resource channel or Magic Items channel (override for dev/test)
+  const isInAllowedChannel = ix.channelId === REWARDS_CHANNEL_ID || ix.channelId === MAGIC_ITEMS_CHANNEL_ID;
+  const isInConfiguredGuild = ix.guildId === CONFIG.guild?.id;
+
+  if (!isInAllowedChannel && isInConfiguredGuild) {
     await ix.reply({
       flags: MessageFlags.Ephemeral,
-      content:
-        t('common.notInResourceChannel'),
+      content: t('sell.notInResourceChannel'),
     });
     return;
   }
@@ -246,6 +250,7 @@ export async function execute(ix: ChatInputCommandInteraction) {
 
   if (sub === "set") {
     const amtGp = ix.options.getNumber("amount", true);
+    const oldGp = toGpString(row.cp);
     const next = toCp(amtGp);
     await upsertPlayerCP(user.id, next, row.name);
     await ix.reply({
@@ -254,6 +259,7 @@ export async function execute(ix: ChatInputCommandInteraction) {
         name: row.name,
         amt: amtGp.toFixed(2),
         newGp: toGpString(next),
+        oldGp: oldGp,
         reasonLine: reason ? t('gp.reasonFmt', { reason }) : "",
       }),
     });

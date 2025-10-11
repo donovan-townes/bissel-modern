@@ -1,109 +1,70 @@
-// import advancement from "../../config/advancement.json" with { type: "json" };
-import rewards from "../../config/rewards.json" with { type: "json" };
-import { bandFor, applyXP } from "./xp.js";
+import dmrewards from "../../config/dmrewards.json" with { type: "json" };
 
-/** Types */
-type RewardsCfg = typeof rewards;
-// type AdvancementRow = { level: number; xp: number; proficiency: number };
+import { applyXP } from "./xp.js";
 
-export type RewardMode = "reward" | "dmreward" | "staffreward";
-export type ResourceDelta = { xp?: number; cp?: number; tpUnits?: number };
+/** Public Type */
+export type ResourceDelta = { xp?: number; cp?: number; tp: number };
 
-// const ADV = advancement as { levels: AdvancementRow[]; maxLevel: number };
-const CFG: RewardsCfg = rewards;
+/* Internals */
+type RewardRow = {
+  level: number;
+  tier: "low" | "mid" | "high" | "epic";
+  xp: number;
+  gp: number; // in GP
+  tp: number; // in GT (displayed)
+};
 
-/** --- Internals --- */
+type RewardsTable = { levels: RewardRow[] };
+const DM_CFG: RewardsTable = dmrewards as RewardsTable;
 
-function bracketForLevel(level: number, table: { lt?: number; else?: boolean; multiplier: number }[]): number {
-  for (const row of table) {
-    if (row.lt && level < row.lt) return row.multiplier;
-    if (row.else) return row.multiplier;
+
+function getDmRow(level: number): RewardRow {
+  const L = Math.max(1, Math.min(20, Math.floor(level || 1)));
+  const row = DM_CFG.levels.find(r => r.level === L);
+  if (row) return row;
+
+  // Extremely defensive: fall back to nearest lower row or level 1
+  const sorted = [...DM_CFG.levels].sort((a, b) => a.level - b.level);
+  for (let i = sorted.length - 1; i >= 0; i--) {
+    const item = sorted[i];
+    if (item && item.level <= L) return item;
   }
-  // Fallback safest multiplier
-  return table.at(-1)?.multiplier ?? 20;
+  const fallback = sorted[0];
+  if (!fallback) throw new Error("No reward levels configured");
+  return fallback;
+  
 }
 
-function gpCpForXp(level: number, xpAward: number): number {
-  const arr = CFG.gp.cpPerXpByLevel;
-  const ratio = arr[level]; // cp per 1 XP (array is 1-indexed)
-  if (typeof ratio !== "number" || ratio < 0) return 0;
-  return Math.round(xpAward * ratio);
-}
+/** Public API */
 
-function tpUnitsFor(level: number, mode: RewardMode): number {
-  const rows =
-    mode === "dmreward" ? CFG.tp.steps.dmreward
-    : mode === "staffreward" ? CFG.tp.steps.staffreward
-    : CFG.tp.steps.reward;
-
-  for (const r of rows) {
-    if (r.lt && level < r.lt) return r.units;
-    if ('else' in r && r.else) return r.units;
-  }
-  return 0;
-}
-
-/** Award XP per legacy rule:
- * L20 → fixed
- * else → ((next - curr)/100) * bracket
- */
-function xpForDmOrStaff(level: number, mode: "dm" | "staff"): number {
-  const table = mode === "dm" ? CFG.dm : CFG.staff;
-  if (level >= 20) return table.level20Xp;
-
-  const { curr, next } = bandFor(level);
-  if (next === null) return table.level20Xp; // safety
-
-  const gap = next - curr;
-  const mult = bracketForLevel(level, table.brackets);
-  const xp = (gap / 100) * mult;
-  return Math.round(xp);
-}
-
-/** --- Public API --- */
-
-/** Compute the standard multi-target player reward (manual), given explicit xp/gp/tp inputs.
- *  - gp is in GP (decimal). Converts to cp.
- *  - tp is in displayed TP (can be 0.5). Converts to stored units (*2).
- */
+// Manual reward (bulk add). Input is human-first: xp (int), gp (in GP), tp (GT/TP).
 export function computeCustomReward(input: { xp?: number; gp?: number; tp?: number }): ResourceDelta {
   const xp = Math.max(0, Math.floor(input.xp ?? 0));
-  const cp = Math.round((input.gp ?? 0) * 100);
-  const tpUnits = Math.round((input.tp ?? 0) * 2);
-  return { xp, cp, tpUnits };
+  const cp = Math.max(0, Math.round((input.gp ?? 0) * 100)); // GP → cp
+  const tp = Math.max(0, Number(input.tp ?? 0));             // use as-is (no doubling)
+  return { xp, cp, tp };
 }
 
-/** Compute DM reward for a single character level (self-claim). */
+// DM self-claim: read exact values from dmrewards.json for the active character level.
 export function computeDmReward(level: number): ResourceDelta {
-  const xp = xpForDmOrStaff(level, "dm");
-  const cp = gpCpForXp(level, xp);
-  const tpUnits = tpUnitsFor(level, "dmreward");
-  return { xp, cp, tpUnits };
+  const rec = getDmRow(level);
+  const xp = Math.max(0, Math.floor(rec.xp));
+  const cp = Math.max(0, Math.round(rec.gp * 100)); // GP → cp
+  const tp = Math.max(0, Number(rec.tp));           // as-is
+  return { xp, cp, tp };
 }
 
-/** Compute Staff reward for a target’s level (admin allocates to tagged staff). */
-export function computeStaffReward(level: number): ResourceDelta {
-  const xp = xpForDmOrStaff(level, "staff");
-  const cp = gpCpForXp(level, xp);
-  const tpUnits = tpUnitsFor(level, "staffreward");
-  return { xp, cp, tpUnits };
-}
-
-/** TP bundle for normal end-of-adventure player reward (if you want to auto-add TP by band). */
-export function computePlayerTpStep(level: number): number {
-  return tpUnitsFor(level, "reward"); // stored units
-}
-
-/** Apply any resource delta to a player snapshot using XP auto-leveling rules. */
+// Apply any resource delta to a player snapshot, with auto-leveling
 export function applyResourceDeltas(
   prev: { xp: number; level: number; cp: number; tp: number },
   delta: ResourceDelta
 ) {
-  // XP/level
+  // XP/level via advancement table (xp.ts)
   const res = applyXP({ xp: prev.xp, level: prev.level }, Math.floor(delta.xp ?? 0));
-  // CP/TP (clamped >= 0)
+
+  // Currency/GT (clamped >= 0)
   const nextCp = Math.max(0, prev.cp + (delta.cp ?? 0));
-  const nextTp = Math.max(0, prev.tp + (delta.tpUnits ?? 0));
+  const nextTp = Math.max(0, prev.tp + (delta.tp ?? 0));
 
   return {
     xp: res.xp,

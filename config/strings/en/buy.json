@@ -33,9 +33,15 @@
             ]
         },
         "purchaseSuccess": [
-            "Purchase complete: **{item}** for **{amount} GP**. New total: **{newGp} GP**.",
-            "Logged: **{item}** bought for **{amount} GP**. Balance now **{newGp} GP**.",
-            "Ledger updated — **{item}** purchased (**{amount} GP**). Current GP: **{newGp}**."
-        ]
+            "Purchase complete, {name}: **{item}** for **{amount} GP**. New total: **{newGp} GP**.",
+            "Logged {name}: **{item}** bought for **{amount} GP**. Balance now **{newGp} GP**.",
+            "Ledger updated {name} — **{item}** purchased (**{amount} GP**). Remaining GP: **{newGp}**."
+        ],
+        "purchaseSuccessGT": [
+            "Purchase complete, {name}: **{item}** for 🎫 **{amount} GT**. New total: **{newGt} GT**.",
+            "Logged {name}: **{item}** bought for 🎫 **{amount} GT**. Balance now **{newGt} GT**.",
+            "Ledger updated {name} — **{item}** purchased (🎫 **{amount} GT**). Remaining GT: **{newGt}**."
+        ],
+        "reasonFmt": " _({reason})_"
     }
 }
