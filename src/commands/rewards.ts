@@ -117,8 +117,7 @@ export const data = new SlashCommandBuilder()
       .addIntegerOption((o) => o.setName("xp").setDescription("XP to award (>=0)").setMinValue(0))
       .addNumberOption((o) => o.setName("gp").setDescription("GP to award (>=0)").setMinValue(0))
       .addNumberOption((o) => o.setName("gt").setDescription("GT to award (>=0").setMinValue(0))
-      .addBooleanOption((o) => o.setName("gt_auto").setDescription("Auto GT by level band (ignores explicit GT if true)"))
-      .addStringOption((o) => o.setName("reason").setDescription("Why? (stored in audit later)").setMaxLength(200))
+      .addStringOption((o) => o.setName("reason").setDescription("Why? (for audit purposes)").setMaxLength(200))
   )
   // dm self-claim
   .addSubcommand((sc) =>
@@ -280,7 +279,7 @@ async function handleDm(ix: ChatInputCommandInteraction) {
   }
 
   const embed = new EmbedBuilder()
-    .setTitle(t("reward.dm.title"))
+    .setTitle(t("reward.dm.title", { name: u.displayName }))
     .setDescription(t("reward.dm.description", {
       name: before.name,
       level,

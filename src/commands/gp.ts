@@ -118,14 +118,14 @@ export const data = new SlashCommandBuilder()
   .addSubcommand((sc) =>
     sc
       .setName("adjust")
-      .setDescription("Adjust GP by a signed decimal (can remove)")
+      .setDescription("Adjust GP by a positive or negative decimal amount")
       .addUserOption((o) =>
         o.setName("user").setDescription("Target").setRequired(true)
       )
       .addNumberOption((o) =>
         o
           .setName("amount")
-          .setDescription("Signed GP delta (e.g., -3.75)")
+          .setDescription("Signed GP delta (e.g., -350.75)")
           .setRequired(true)
       )
       .addStringOption((o) =>
@@ -155,21 +155,22 @@ export async function execute(ix: ChatInputCommandInteraction) {
   const sub = ix.options.getSubcommand();
   const member = ix.member as GuildMember | null;
 
-    // Permission guard
+  // Permission guard
   if (!validateCommandPermissions(ix, member, PERMS)) {
     return; 
   }
-  // Channel guard: only allowed in Resource channel (or test override if you use one)
-const isInAllowedChannel = ix.channelId === REWARDS_CHANNEL_ID || ix.channelId === MAGIC_ITEMS_CHANNEL_ID;
-const isInConfiguredGuild = ix.guildId === CONFIG.guild?.id;
 
-if (!isInAllowedChannel && isInConfiguredGuild) {
-  await ix.reply({
-    flags: MessageFlags.Ephemeral,
-    content: t('sell.notInResourceChannel'),
-  });
-  return;
-}
+  // Channel guard: only allowed in Resource channel or Magic Items channel (override for dev/test)
+  const isInAllowedChannel = ix.channelId === REWARDS_CHANNEL_ID || ix.channelId === MAGIC_ITEMS_CHANNEL_ID;
+  const isInConfiguredGuild = ix.guildId === CONFIG.guild?.id;
+
+  if (!isInAllowedChannel && isInConfiguredGuild) {
+    await ix.reply({
+      flags: MessageFlags.Ephemeral,
+      content: t('sell.notInResourceChannel'),
+    });
+    return;
+  }
 
 
   if (sub === "show") {
@@ -249,6 +250,7 @@ if (!isInAllowedChannel && isInConfiguredGuild) {
 
   if (sub === "set") {
     const amtGp = ix.options.getNumber("amount", true);
+    const oldGp = toGpString(row.cp);
     const next = toCp(amtGp);
     await upsertPlayerCP(user.id, next, row.name);
     await ix.reply({
@@ -257,6 +259,7 @@ if (!isInAllowedChannel && isInConfiguredGuild) {
         name: row.name,
         amt: amtGp.toFixed(2),
         newGp: toGpString(next),
+        oldGp: oldGp,
         reasonLine: reason ? t('gp.reasonFmt', { reason }) : "",
       }),
     });

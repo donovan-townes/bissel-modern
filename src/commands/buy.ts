@@ -14,7 +14,7 @@ type PlayerRow = {
   level: number;
   xp: number;
   cp: number; // stored in copper
-  tp: number;
+  tp: number; // Displayed as GT
 };
 
 const CFG = CONFIG.guild!.config;
@@ -37,9 +37,17 @@ async function subCp(userId: string, deltaCp: number) {
   ]);
 }
 
+async function subTp(userId: string, deltaTp: number) {
+  const db = await getDb();
+  await db.run("UPDATE charlog SET tp = tp - ? WHERE userId = ?", [
+    deltaTp, 
+    userId
+  ]);
+}
+
 export const data = new SlashCommandBuilder()
   .setName("buy")
-  .setDescription("Buy an item for GP or GT and record it to your character log.")
+  .setDescription("Buy an item for GP or GT and record it to the resource log.")
   .addStringOption((opt) =>
     opt
       .setName("item")
@@ -49,40 +57,41 @@ export const data = new SlashCommandBuilder()
   .addNumberOption((opt) =>
     opt
       .setName("amount")
-      .setDescription("Sale price in GP (must be > 0)")
+      .setDescription("Sale price in GP|GT (must be > 0)")
       .setRequired(true)
       .setMinValue(0.01)
   )
-  // .addStringOption((opt) =>
-  //   opt
-  //     .setName("resource")
-  //     .setDescription("Is this purchase made with GP or GT? (Default: GP)")
-  //     .setRequired(true)
-  //     .addChoices(
-  //       { name: "GP (Gold Pieces)", value: "gp" },
-  //       { name: "GT (Golden Tickets)", value: "gt" }
-  //     )
-  // )
+  .addStringOption((opt) =>
+    opt
+      .setName("type")
+      .setDescription("Is this purchase to be made with GT? (Default: GP)")
+      .setRequired(false)
+      .addChoices(
+        { name: "GP (Gold Pieces)", value: "gp" },
+        { name: "GT (Golden Tickets)", value: "gt" }
+      )
+  )
   ;
 
 export async function execute(ix: ChatInputCommandInteraction) {
-  // Channel guard: only allowed in Resource or Magic Items channel (or test override)
-const isInAllowedChannel = ix.channelId === REWARDS_CHANNEL_ID || ix.channelId === MAGIC_ITEMS_CHANNEL_ID;
-const isInConfiguredGuild = ix.guildId === CONFIG.guild?.id;
+// Channel guard: only allowed in Resource or Magic Items channel (or test override)
+  const isInAllowedChannel = ix.channelId === REWARDS_CHANNEL_ID || ix.channelId === MAGIC_ITEMS_CHANNEL_ID;
+  const isInConfiguredGuild = ix.guildId === CONFIG.guild?.id;
 
-if (!isInAllowedChannel && isInConfiguredGuild) {
-  await ix.reply({
-    flags: MessageFlags.Ephemeral,
-    content: t('sell.notInResourceChannel'),
-  });
-  return;
-}
+  if (!isInAllowedChannel && isInConfiguredGuild) {
+    await ix.reply({
+      flags: MessageFlags.Ephemeral,
+      content: t('sell.notInResourceChannel'),
+    });
+    return;
+  }
 
   const member = ix.member as GuildMember;
   const user = member.user;
 
   const item = ix.options.getString("item", true).trim();
   const amountGp = ix.options.getNumber("amount", true);
+  const resource = ix.options.getString("type") || "gp";
 
   // sanity checks
   if (!item) {
@@ -104,10 +113,8 @@ if (!isInAllowedChannel && isInConfiguredGuild) {
     });
     return;
   }
-
-  const row = await getPlayer(user.id);
   
-  // Make sure the row exists (keeps behavior graceful for first-time users)
+  const row = await getPlayer(user.id);
   if (!row) {
     await ix.reply({
       flags: MessageFlags.Ephemeral,
@@ -116,29 +123,31 @@ if (!isInAllowedChannel && isInConfiguredGuild) {
     return;
   }
   
+  // GT purchase
+  if (resource === "gt") {
+    const amountGt = amountGp;
+    await subTp(user.id, amountGt);
+
+    const updated = await getPlayer(user.id);
+    const name = row.name;
+    const newGt = updated ? updated.tp : Math.max(0, (row?.tp ?? 0) - amountGt);
+    
+    await ix.reply({
+      content: t('buy.purchaseSuccessGT', { item, amount: amountGt.toFixed(2), newGt, name }),
+    });
+    return;
+  } 
+
+  // GP purchase
   const deltaCp = toCp(amountGp);
   await subCp(user.id, deltaCp);
   
   const updated = await getPlayer(user.id);
   const newGp = updated ? toGp(updated.cp) : toGp((row?.cp ?? 0) + deltaCp);
-  
-  // Embed is disabled for now; we can re-enable later if we want it.
-  
-  // const displayName = row?.name ?? (member.displayName || user.username);
-  // const embed = new EmbedBuilder()
-  //   .setTitle("📜 Purchase Recorded")
-  //   .setAuthor({ name: displayName, iconURL: user.displayAvatarURL() })
-  //   .setDescription(
-  //     `**${displayName}** bought **${item}** for **${amountGp.toFixed(
-  //       2
-  //     )} GP**.\n**New GP Total:** ${newGp} GP`
-  //   )
-  //   .setFooter({ text: `Transacted by ${user.tag}` })
-  //   .setTimestamp();
+  const name = row.name
 
-  await ix.reply({ 
-    content: t('buy.purchaseSuccess', {item, amount: amountGp.toFixed(2), newGp})
-    // embeds: [embed] });
+  await ix.reply({
+    content: t('buy.purchaseSuccess', { item, amount: amountGp.toFixed(2), newGp, name }),
   });
 }
 

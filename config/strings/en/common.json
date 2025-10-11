@@ -53,6 +53,13 @@
                 "Perhaps you should try again after the **Feeblemind** has worn off."
             ]
         },
+        "notYetImplemented": [
+            "This feature is still in the forge. Stay tuned!",
+            "I'm still learning that trick. Check back later!",
+            "Coming soon to a guild near you!",
+            "This feature is still being crafted. Please be patient!",
+            "I'm still learning that trick. Please check back later!"
+        ],
         "permission": {
             "guild_member_only": "You can only use this if you are a registered Guild Member."
         },

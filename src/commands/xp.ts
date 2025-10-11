@@ -89,7 +89,7 @@ export const data = new SlashCommandBuilder()
         o.setName("amount").setDescription("XP to add (≥1)").setRequired(true).setMinValue(1)
       )
       .addStringOption((o) =>
-        o.setName("reason").setDescription("Why? (stored in audit)").setMaxLength(200)
+        o.setName("reason").setDescription("Why? (for audit purposes)").setMaxLength(200)
       )
   )
   .addSubcommand((sc) =>
@@ -103,7 +103,7 @@ export const data = new SlashCommandBuilder()
         o.setName("amount").setDescription("Signed XP delta, e.g. -50").setRequired(true)
       )
       .addStringOption((o) =>
-        o.setName("reason").setDescription("Why? (stored in audit)").setMaxLength(200)
+        o.setName("reason").setDescription("Why? (for audit purposes)").setMaxLength(200)
       )
   )
   .addSubcommand((sc) =>
@@ -117,7 +117,7 @@ export const data = new SlashCommandBuilder()
         o.setName("amount").setDescription("Absolute XP (≥0)").setRequired(true).setMinValue(0)
       )
       .addStringOption((o) =>
-        o.setName("reason").setDescription("Why? (stored in audit)").setMaxLength(200)
+        o.setName("reason").setDescription("Why? (for audit purposes)").setMaxLength(200)
       )
   )
   .addSubcommand((sc) =>
